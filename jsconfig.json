@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/components/*": ["components/*"],
+      "@/binary": ["binary/*"],
+      "@/mp3s": ["mp3s/*"]
+    }
+  }
+}

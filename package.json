@@ -15,7 +15,8 @@
     "next": "13.1.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "youtube-mp3-downloader": "^0.7.11"
+    "youtube-mp3-downloader": "^0.7.11",
+    "ytdl-core": "^4.11.2"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.13",
