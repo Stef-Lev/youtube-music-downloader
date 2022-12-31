@@ -35,15 +35,22 @@ export default function Home() {
     }
   };
 
+  // const sendForConvertion = async (data) => {
+  //   console.log("Sent...");
+  //   const response = await fetch("/api/convert", {
+  //     method: "POST",
+  //     mode: "cors",
+  //     cache: "no-cache",
+  //     headers: { "Content-Type": "application/json" },
+  //     body: JSON.stringify({ urls: data }),
+  //   });
+  //   return response;
+  // };
+
+  // Using only webSocket
   const sendForConvertion = async (data) => {
-    const response = await fetch("/api/convert", {
-      method: "POST",
-      mode: "cors",
-      cache: "no-cache",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ urls: data }),
-    });
-    return response;
+    console.log("Sent...");
+    socket.emit("downloadVideos", data);
   };
 
   // console.log(list);
