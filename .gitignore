@@ -14,6 +14,7 @@
 
 # production
 /build
+/mp3s
 
 # misc
 .DS_Store

@@ -1,10 +1,28 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import io from "socket.io-client";
+let socket;
 
-const defaultUrls = ["uHjZphtQ5_Q", "yX0UE8BoUeQ", "fNrlgeMJgxU"];
+// const defaultUrls = ["uHjZphtQ5_Q", "yX0UE8BoUeQ", "fNrlgeMJgxU"];
+const defaultUrls = ["fNrlgeMJgxU"];
 
 export default function Home() {
   const [url, setUrl] = useState("");
   const [list, setList] = useState(defaultUrls);
+  const [progress, setProgress] = useState({});
+
+  useEffect(() => {
+    socketInitializer();
+  }, []);
+
+  const socketInitializer = async () => {
+    await fetch("/api/convert");
+    socket = io();
+
+    socket.on("connect", () => {
+      console.log("connected");
+    });
+    socket.on("showProgress", (msg) => console.log(msg));
+  };
 
   const handleChange = (ev) => {
     setUrl(ev.target.value);
@@ -25,10 +43,10 @@ export default function Home() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ urls: data }),
     });
-    return response.json();
+    return response;
   };
 
-  console.log(list);
+  // console.log(list);
 
   return (
     <div className="bg-red-100 h-[100vh] flex flex-col items-center">
@@ -61,6 +79,22 @@ export default function Home() {
       >
         Convert
       </button>
+
+      {/* <input
+        className="px-2 py-1 rounded-md text-lg w-1/3"
+        type="text"
+        value={socketTest}
+        onChange={handleSocket}
+      />
+      <h2 className="text-red-500">{socketResponse}</h2>
+      <button
+        className="bg-blue-300 rounded-md py-2 w-[200px] text-2xl"
+        onClick={() => socket.emit("sentTest", socketTest)}
+      >
+        Send Socket
+      </button>
+      <div>Client counter: {counter}</div>
+      <div className=" text-2xl">Server progress: {progress}</div> */}
     </div>
   );
 }
