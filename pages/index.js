@@ -13,13 +13,15 @@ export default function Home({ songsList }) {
   const [progress, setProgress] = useState({});
   const perc = 33;
 
-  useEffect(() => {
-    console.log(songsList);
-  }, [songsList]);
+  const handleComplete = (data) => {
+    //Store the data to the songList array in localstorage
+    console.log(data);
+  };
 
   useEffect(() => {
+    console.log(songsList);
     socketInitializer();
-  }, []);
+  }, [songsList]);
 
   const socketInitializer = async () => {
     await fetch("/api/convert");
@@ -28,9 +30,9 @@ export default function Home({ songsList }) {
     socket.on("connect", () => {
       console.log("connected");
     });
-    socket.on("showProgress", (msg) => console.log(msg));
-    socket.on("showError", (msg) => console.log(msg));
-    socket.on("showComplete", (msg) => console.log(msg));
+    socket.on("showProgress", (msg) => console.log("progress", msg));
+    socket.on("showError", (msg) => console.log("error", msg));
+    socket.on("showComplete", (msg) => console.log("complete", msg));
   };
 
   const handleChange = (ev) => {
