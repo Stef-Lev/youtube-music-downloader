@@ -110,3 +110,6 @@ export async function getServerSideProps() {
 
   return { props: { songsList } };
 }
+
+// Basic milestones
+// When page loads, it checks the stored songs and updates the localstorage for the ones that are complete
