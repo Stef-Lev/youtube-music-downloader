@@ -6,6 +6,8 @@ const path = require("path");
 const ffmpegPath = which.sync("ffmpeg");
 const outputPath = path.join(process.cwd(), "mp3s");
 
+console.log("outputPath", outputPath);
+
 const YD = new YoutubeMp3Downloader({
   ffmpegPath,
   outputPath,
@@ -28,29 +30,41 @@ export default function handler(req, res) {
   io.on("connection", async (socket) => {
     console.log(socket.id, "socketID");
 
+    const sendError = async (msg) => {
+      socket.emit("showError", msg);
+    };
+
     const sendProgress = async (msg) => {
       socket.emit("showProgress", msg);
+    };
+    const sendComplete = async (msg) => {
+      socket.emit("showComplete", msg);
     };
 
     const downloadVideos = async (list) => {
       list.forEach((item) => {
         YD.download(item);
         YD.on("error", function (error) {
-          // console.log(error);
-          sendProgress({
+          sendError({
             status: "error",
-            message: "Something went wrong during downloading",
+            message: error,
           });
         });
         YD.on("progress", function (progress) {
-          // console.log(progress);
           sendProgress(progress);
         });
         YD.on("finished", function (err, data) {
-          sendProgress({
-            status: "success",
-            data,
-          });
+          if (err) {
+            sendError({
+              status: "error",
+              message: err,
+            });
+          } else {
+            sendComplete({
+              status: "success",
+              data,
+            });
+          }
         });
       });
     };
