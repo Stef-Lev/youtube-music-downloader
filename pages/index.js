@@ -92,12 +92,6 @@ export default function Home({ storedSongs }) {
       >
         Convert
       </button>
-      <button
-        className="bg-purple-300 rounded-md py-2 w-[200px] text-2xl"
-        onClick={() => fetch("/api/testApi")}
-      >
-        TestPath
-      </button>
 
       <div>
         <h3>Complete mp3s</h3>
