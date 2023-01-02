@@ -1,27 +1,24 @@
 import { useState, useEffect } from "react";
-import useLocalStorage from "helpers/useLocalStorage";
+import { Puff } from "react-loader-spinner";
+import getVideoId from "helpers/getVideoIDFromURL";
+import { useRouter } from "next/router";
+import ItemStatus from "@/components/ItemStatus";
 import io from "socket.io-client";
 let socket;
 
 const defaultUrls = ["uHjZphtQ5_Q", "yX0UE8BoUeQ", "fNrlgeMJgxU"];
 // const defaultUrls = ["fNrlgeMJgxU"];
 
-export default function Home({ songsList }) {
+export default function Home({ storedSongs }) {
   const [url, setUrl] = useState("");
-  const [list, setList] = useState(defaultUrls);
-  // const [name, setName] = useLocalStorage("name", "Bob");
-  const [progress, setProgress] = useState({});
+  const [list, setList] = useState([]);
+  const [loading, setLoading] = useState(false);
   const perc = 33;
-
-  const handleComplete = (data) => {
-    //Store the data to the songList array in localstorage
-    console.log(data);
-  };
+  const router = useRouter();
 
   useEffect(() => {
-    console.log(songsList);
     socketInitializer();
-  }, [songsList]);
+  }, []);
 
   const socketInitializer = async () => {
     await fetch("/api/convert");
@@ -30,9 +27,11 @@ export default function Home({ songsList }) {
     socket.on("connect", () => {
       console.log("connected");
     });
-    socket.on("showProgress", (msg) => console.log("progress", msg));
+    socket.on("showProgress", (data) => {
+      setLoading(true);
+    });
     socket.on("showError", (msg) => console.log("error", msg));
-    socket.on("showComplete", (msg) => console.log("complete", msg));
+    socket.on("showComplete", () => handleComplete());
   };
 
   const handleChange = (ev) => {
@@ -41,15 +40,25 @@ export default function Home({ songsList }) {
 
   const handleAddUrl = () => {
     if (url.length) {
-      // setList([...list, { id: url, status: "pending", fileName: "" }]);
-      setList([...list, url]);
+      let videoId = getVideoId(url);
+      setList([...list, videoId]);
       setUrl("");
     }
   };
 
-  const sendForConvertion = async (data) => {
-    console.log("Sent...");
-    socket.emit("downloadVideos", data);
+  const sendForConvertion = async (list) => {
+    socket.emit("downloadVideos", list);
+    setLoading(true);
+    setList([]);
+  };
+
+  const refreshData = () => {
+    router.replace(router.asPath);
+  };
+
+  const handleComplete = () => {
+    setLoading(false);
+    refreshData();
   };
 
   return (
@@ -89,10 +98,29 @@ export default function Home({ songsList }) {
       >
         TestPath
       </button>
-      <div className="my-4 w-[50%] h-5 bg-gray-200 rounded-full dark:bg-gray-700">
-        <div
-          className={`h-5 w-[50%] bg-blue-600 rounded-full dark:bg-blue-500`}
-        ></div>
+
+      <div>
+        <h3>Complete mp3s</h3>
+        <div>
+          {storedSongs.map((item, idx) => (
+            <div key={idx + 1}>{item}</div>
+          ))}
+        </div>
+        {loading && (
+          <div className="w-full mt-[20px]">
+            <p className="text-center my-[20px]">Downloading</p>
+            <Puff
+              height="80"
+              width="100%"
+              radius={1}
+              color="#4fa94d"
+              ariaLabel="puff-loading"
+              wrapperStyle={{}}
+              wrapperClass=""
+              visible={true}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
@@ -104,14 +132,10 @@ export async function getServerSideProps() {
 
   const mp3Folder = path.join(process.cwd(), "mp3s");
 
-  let songsList = [];
+  let storedSongs = [];
   fs.readdirSync(mp3Folder).forEach((file) => {
-    console.log(file);
-    songsList.push(file);
+    storedSongs.push(file);
   });
 
-  return { props: { songsList } };
+  return { props: { storedSongs } };
 }
-
-// Basic milestones
-// When page loads, it checks the stored songs and updates the localstorage for the ones that are complete

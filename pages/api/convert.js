@@ -6,8 +6,6 @@ const path = require("path");
 const ffmpegPath = which.sync("ffmpeg");
 const outputPath = path.join(process.cwd(), "mp3s");
 
-console.log("outputPath", outputPath);
-
 const YD = new YoutubeMp3Downloader({
   ffmpegPath,
   outputPath,
@@ -34,8 +32,12 @@ export default function handler(req, res) {
       socket.emit("showError", msg);
     };
 
-    const sendProgress = async (msg) => {
-      socket.emit("showProgress", msg);
+    const sendProgress = async (data) => {
+      const formattedData = {
+        id: data.videoId,
+        progress: data.progress.percentage,
+      };
+      socket.emit("showProgress", formattedData);
     };
     const sendComplete = async (msg) => {
       socket.emit("showComplete", msg);
