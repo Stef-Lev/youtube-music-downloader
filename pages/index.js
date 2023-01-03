@@ -1,19 +1,18 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Puff } from "react-loader-spinner";
 import getVideoId from "helpers/getVideoIDFromURL";
 import { useRouter } from "next/router";
 import ItemStatus from "@/components/ItemStatus";
 import io from "socket.io-client";
-let socket;
 
 const defaultUrls = ["uHjZphtQ5_Q", "yX0UE8BoUeQ", "fNrlgeMJgxU"];
-// const defaultUrls = ["fNrlgeMJgxU"];
 
 export default function Home({ storedSongs }) {
+  const socket = useRef(null);
   const [url, setUrl] = useState("");
   const [list, setList] = useState([]);
+  const [inProgress, setInProgress] = useState([]);
   const [loading, setLoading] = useState(false);
-  const perc = 33;
   const router = useRouter();
 
   useEffect(() => {
@@ -22,16 +21,26 @@ export default function Home({ storedSongs }) {
 
   const socketInitializer = async () => {
     await fetch("/api/convert");
-    socket = io();
+    if (!socket.current) {
+      socket.current = io();
+    }
 
-    socket.on("connect", () => {
+    socket.current.on("connect", () => {
       console.log("connected");
     });
-    socket.on("showProgress", (data) => {
-      setLoading(true);
+
+    socket.current.on("showError", (msg) => console.log("error", msg));
+    socket.current.on("showComplete", (response) => handleComplete(response));
+    socket.current.on("showProgress", (data) => {
+      setInProgress((prev) =>
+        prev.map((item) => {
+          if (item.id == data.id) {
+            item.progress = data.progress;
+          }
+          return item;
+        })
+      );
     });
-    socket.on("showError", (msg) => console.log("error", msg));
-    socket.on("showComplete", () => handleComplete());
   };
 
   const handleChange = (ev) => {
@@ -47,7 +56,10 @@ export default function Home({ storedSongs }) {
   };
 
   const sendForConvertion = async (list) => {
-    socket.emit("downloadVideos", list);
+    const buildProgress = list.map((item) => ({ id: item, progress: 0 }));
+    console.log(buildProgress);
+    setInProgress(buildProgress);
+    socket.current.emit("downloadVideos", list);
     setLoading(true);
     setList([]);
   };
@@ -56,8 +68,9 @@ export default function Home({ storedSongs }) {
     router.replace(router.asPath);
   };
 
-  const handleComplete = () => {
-    setLoading(false);
+  const handleComplete = (response) => {
+    const { videoId } = response.data;
+    setInProgress((prev) => prev.filter((item) => item.id != videoId));
     refreshData();
   };
 
@@ -115,6 +128,10 @@ export default function Home({ storedSongs }) {
             />
           </div>
         )}
+        <div>
+          {inProgress.length > 0 &&
+            inProgress.map((item) => <ItemStatus key={item.id} item={item} />)}
+        </div>
       </div>
     </div>
   );
