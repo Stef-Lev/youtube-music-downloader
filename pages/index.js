@@ -1,19 +1,22 @@
 import { useState, useEffect, useRef } from "react";
-import { Puff } from "react-loader-spinner";
+import { toast } from "react-toastify";
+import Logo from "@/components/Logo";
+// import { Puff } from "react-loader-spinner";
 import getVideoId from "helpers/getVideoIDFromURL";
 import { useRouter } from "next/router";
 import ItemStatus from "@/components/ItemStatus";
 import io from "socket.io-client";
 
 const defaultUrls = ["uHjZphtQ5_Q", "yX0UE8BoUeQ", "fNrlgeMJgxU"];
+// const defaultUrls = ["stefanos77"];
 
 export default function Home({ storedSongs }) {
   const socket = useRef(null);
-  const [url, setUrl] = useState("");
-  const [list, setList] = useState([]);
-  const [inProgress, setInProgress] = useState([]);
-  const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const [url, setUrl] = useState("");
+  const [list, setList] = useState(defaultUrls);
+
+  const [inProgress, setInProgress] = useState([]);
 
   useEffect(() => {
     socketInitializer();
@@ -23,24 +26,27 @@ export default function Home({ storedSongs }) {
     await fetch("/api/convert");
     if (!socket.current) {
       socket.current = io();
+
+      socket.current.on("connect", () => {
+        console.log("connected");
+      });
+
+      socket.current.on("showError", (err) => {
+        notify(err.message);
+        console.log(err);
+      });
+      socket.current.on("showComplete", (response) => handleComplete(response));
+      socket.current.on("showProgress", (data) => {
+        setInProgress((prev) =>
+          prev.map((item) => {
+            if (item.id == data.id) {
+              item.progress = data.progress;
+            }
+            return item;
+          })
+        );
+      });
     }
-
-    socket.current.on("connect", () => {
-      console.log("connected");
-    });
-
-    socket.current.on("showError", (msg) => console.log("error", msg));
-    socket.current.on("showComplete", (response) => handleComplete(response));
-    socket.current.on("showProgress", (data) => {
-      setInProgress((prev) =>
-        prev.map((item) => {
-          if (item.id == data.id) {
-            item.progress = data.progress;
-          }
-          return item;
-        })
-      );
-    });
   };
 
   const handleChange = (ev) => {
@@ -55,12 +61,14 @@ export default function Home({ storedSongs }) {
     }
   };
 
+  function notify(msg) {
+    toast(msg, { type: "error" });
+  }
+
   const sendForConvertion = async (list) => {
     const buildProgress = list.map((item) => ({ id: item, progress: 0 }));
-    console.log(buildProgress);
     setInProgress(buildProgress);
     socket.current.emit("downloadVideos", list);
-    setLoading(true);
     setList([]);
   };
 
@@ -75,22 +83,31 @@ export default function Home({ storedSongs }) {
   };
 
   return (
-    <div className="bg-red-100 h-[100vh] flex flex-col items-center">
-      <h1 className="font-bold text-3xl">YouTube Music Downloader</h1>
+    <div className=" flex flex-col items-center">
+      <Logo />
+      <div className="flex justify-center items-center w-full mb-[16px]">
+        <h1 className="font-bold text-2xl">YouTube Music Downloader</h1>
+      </div>
+      <div className="flex justify-center items-center w-full">
+        <p>Please add a valid YouTube url</p>
+      </div>
 
-      <div className="flex justify-center gap-2 w-full py-5">
-        <input
-          className="px-2 py-1 rounded-md text-lg w-1/3"
-          type="text"
-          value={url}
-          onChange={handleChange}
-        />
-        <button
-          className="bg-green-300 rounded-md px-2 py-1"
-          onClick={() => handleAddUrl()}
-        >
-          Add url
-        </button>
+      <div className="flex justify-center items-center w-full py-1 px-[10px]">
+        <div className="flex items-center justify-center gap-3 w-[100%]">
+          <input
+            placeholder="https://www.youtube.com/watch?v=9bZkp7q19f0"
+            className="px-2 rounded-md text-sm md:text-lg h-[40px] w-[70%] md:w-[500px]"
+            type="text"
+            value={url}
+            onChange={handleChange}
+          />
+          <button
+            className="bg-[#7DF5A5] rounded-md px-2 font-bold h-[40px] w-[30%] md:w-[160px]"
+            onClick={() => handleAddUrl()}
+          >
+            Add url
+          </button>
+        </div>
       </div>
       <div>
         <ul>
@@ -100,37 +117,33 @@ export default function Home({ storedSongs }) {
         </ul>
       </div>
       <button
-        className="bg-orange-300 rounded-md py-2 w-[200px] text-2xl"
+        className="bg-red-500 rounded-md py-2 w-[200px] text-2xl font-bold text-white"
         onClick={() => sendForConvertion(list)}
       >
         Convert
       </button>
-
-      <div>
-        <h3>Complete mp3s</h3>
+      <hr className="w-full flex justify-center my-[16px]" />
+      <div className="w-full flex justify-center">
         <div>
-          {storedSongs.map((item, idx) => (
-            <div key={idx + 1}>{item}</div>
-          ))}
-        </div>
-        {loading && (
-          <div className="w-full mt-[20px]">
-            <p className="text-center my-[20px]">Downloading</p>
-            <Puff
-              height="80"
-              width="100%"
-              radius={1}
-              color="#4fa94d"
-              ariaLabel="puff-loading"
-              wrapperStyle={{}}
-              wrapperClass=""
-              visible={true}
-            />
+          <h3 className="text-center text-2xl font-bold mb-[10px]">
+            Music Library
+          </h3>
+          <div className="px-[10px] pb-[80px]">
+            {storedSongs.map((item, idx) => (
+              <p
+                className="text-[14px] bg-white rounded-md px-[5px] py-[2px] mb-[5px] shadow-lg"
+                key={idx + 1}
+              >
+                {item}
+              </p>
+            ))}
           </div>
-        )}
-        <div>
-          {inProgress.length > 0 &&
-            inProgress.map((item) => <ItemStatus key={item.id} item={item} />)}
+          <div>
+            {inProgress.length > 0 &&
+              inProgress.map((item) => (
+                <ItemStatus key={item.id} item={item} />
+              ))}
+          </div>
         </div>
       </div>
     </div>

@@ -48,8 +48,8 @@ export default function handler(req, res) {
         YD.download(item);
         YD.on("error", function (error) {
           sendError({
-            status: "error",
-            message: error,
+            status: error,
+            message: "Something went wrong during downloading",
           });
         });
         YD.on("progress", function (progress) {
@@ -58,8 +58,8 @@ export default function handler(req, res) {
         YD.on("finished", function (err, data) {
           if (err) {
             sendError({
-              status: "error",
-              message: err,
+              status: err,
+              message: "Something went wrong during downloading",
             });
           } else {
             sendComplete({
