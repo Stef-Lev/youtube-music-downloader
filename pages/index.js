@@ -5,16 +5,19 @@ import Logo from "@/components/Logo";
 import getVideoId from "helpers/getVideoIDFromURL";
 import { useRouter } from "next/router";
 import ItemStatus from "@/components/ItemStatus";
+import UrlTabs from "@/components/UrlTabs";
 import io from "socket.io-client";
+import MusicLibrary from "@/components/MusicLibrary";
+import DownloadForm from "@/components/DownloadForm";
 
-const defaultUrls = ["uHjZphtQ5_Q", "yX0UE8BoUeQ", "fNrlgeMJgxU"];
+// const defaultUrls = ["uHjZphtQ5_Q", "yX0UE8BoUeQ", "fNrlgeMJgxU"];
 // const defaultUrls = ["stefanos77"];
 
 export default function Home({ storedSongs }) {
   const socket = useRef(null);
   const router = useRouter();
   const [url, setUrl] = useState("");
-  const [list, setList] = useState(defaultUrls);
+  const [list, setList] = useState([]);
 
   const [inProgress, setInProgress] = useState([]);
 
@@ -32,8 +35,8 @@ export default function Home({ storedSongs }) {
       });
 
       socket.current.on("showError", (err) => {
-        notify(err.message);
-        console.log(err);
+        notify(err.message, { type: "error" });
+        setInProgress([]);
       });
       socket.current.on("showComplete", (response) => handleComplete(response));
       socket.current.on("showProgress", (data) => {
@@ -61,8 +64,8 @@ export default function Home({ storedSongs }) {
     }
   };
 
-  function notify(msg) {
-    toast(msg, { type: "error" });
+  function notify(msg, options = {}) {
+    toast(msg, { ...options });
   }
 
   const sendForConvertion = async (list) => {
@@ -83,69 +86,24 @@ export default function Home({ storedSongs }) {
   };
 
   return (
-    <div className=" flex flex-col items-center">
+    <div className="flex flex-col items-center">
       <Logo />
-      <div className="flex justify-center items-center w-full mb-[16px]">
-        <h1 className="font-bold text-2xl">YouTube Music Downloader</h1>
-      </div>
-      <div className="flex justify-center items-center w-full">
-        <p>Please add a valid YouTube url</p>
-      </div>
-
-      <div className="flex justify-center items-center w-full py-1 px-[10px]">
-        <div className="flex items-center justify-center gap-3 w-[100%]">
-          <input
-            placeholder="https://www.youtube.com/watch?v=9bZkp7q19f0"
-            className="px-2 rounded-md text-sm md:text-lg h-[40px] w-[70%] md:w-[500px]"
-            type="text"
-            value={url}
-            onChange={handleChange}
-          />
-          <button
-            className="bg-[#7DF5A5] rounded-md px-2 font-bold h-[40px] w-[30%] md:w-[160px]"
-            onClick={() => handleAddUrl()}
-          >
-            Add url
-          </button>
-        </div>
-      </div>
-      <div>
-        <ul>
-          {list.map((item, index) => (
-            <li key={index + 1}>{item}</li>
+      <DownloadForm
+        url={url}
+        handleChange={handleChange}
+        handleAddUrl={handleAddUrl}
+        onSubmit={() => sendForConvertion(list)}
+      />
+      <UrlTabs urls={list} />
+      {inProgress.length > 0 && (
+        <div className="w-full md:w-[620px] p-2">
+          {inProgress.map((item) => (
+            <ItemStatus key={item.id} item={item} />
           ))}
-        </ul>
-      </div>
-      <button
-        className="bg-red-500 rounded-md py-2 w-[200px] text-2xl font-bold text-white"
-        onClick={() => sendForConvertion(list)}
-      >
-        Convert
-      </button>
-      <hr className="w-full flex justify-center my-[16px]" />
-      <div className="w-full flex justify-center">
-        <div>
-          <h3 className="text-center text-2xl font-bold mb-[10px]">
-            Music Library
-          </h3>
-          <div className="px-[10px] pb-[80px]">
-            {storedSongs.map((item, idx) => (
-              <p
-                className="text-[14px] bg-white rounded-md px-[5px] py-[2px] mb-[5px] shadow-lg"
-                key={idx + 1}
-              >
-                {item}
-              </p>
-            ))}
-          </div>
-          <div>
-            {inProgress.length > 0 &&
-              inProgress.map((item) => (
-                <ItemStatus key={item.id} item={item} />
-              ))}
-          </div>
         </div>
-      </div>
+      )}
+
+      <MusicLibrary storedSongs={storedSongs} />
     </div>
   );
 }

@@ -49,7 +49,8 @@ export default function handler(req, res) {
         YD.on("error", function (error) {
           sendError({
             status: error,
-            message: "Something went wrong during downloading",
+            id: item,
+            message: `Could not download video with ID ${item}`,
           });
         });
         YD.on("progress", function (progress) {
@@ -59,6 +60,7 @@ export default function handler(req, res) {
           if (err) {
             sendError({
               status: err,
+              id: item,
               message: "Something went wrong during downloading",
             });
           } else {

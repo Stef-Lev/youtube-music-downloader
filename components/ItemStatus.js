@@ -7,10 +7,15 @@ function ItemStatus({ item }) {
 
   return (
     <div className="flex items-center justify-between">
-      <div>{item.id}</div>
-      <div className="my-4 w-[70%] h-5 bg-gray-200 rounded-full dark:bg-gray-600">
+      <div className="my-4 w-[35%] sm:w-[40%]">
+        <span className="hidden sm:inline">Downloading </span>
+        <span className="bg-[#ef4444] font-bold text-white rounded-md p-1 text-[14px]">
+          {item.id}
+        </span>
+      </div>
+      <div className="my-4 w-[65%] sm:w-[60%] h-5 rounded-full loadingBarBg">
         <div
-          className={`h-5 bg-teal-600 rounded-full dark:bg-teal-500`}
+          className={`h-5 rounded-full loadingBar`}
           style={{ width: calcPercentage(item.progress) }}
         ></div>
       </div>
