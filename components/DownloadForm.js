@@ -1,6 +1,12 @@
 import React from "react";
 
-function DownloadForm({ url, handleChange, handleAddUrl, onSubmit }) {
+function DownloadForm({
+  url,
+  handleChange,
+  handleAddUrl,
+  onSubmit,
+  downloading,
+}) {
   return (
     <div className="p-2 mb-[16px] w-full">
       <div className="flex justify-center items-center w-full mb-[10px]">
@@ -29,10 +35,11 @@ function DownloadForm({ url, handleChange, handleAddUrl, onSubmit }) {
       </div>
       <div className="flex justify-center">
         <button
-          className="bg-red-500 rounded-[30px] py-2 w-[200px] text-xl font-bold text-white mb-[10px]"
+          disabled={downloading}
+          className="bg-red-500 rounded-[30px] py-2 w-[200px] text-xl font-bold text-white mb-[10px]  disabled:opacity-50"
           onClick={onSubmit}
         >
-          Convert
+          {downloading ? "Downloading" : "Convert"}
         </button>
       </div>
     </div>

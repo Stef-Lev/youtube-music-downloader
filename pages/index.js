@@ -18,6 +18,7 @@ export default function Home({ storedSongs }) {
   const router = useRouter();
   const [url, setUrl] = useState("");
   const [list, setList] = useState([]);
+  const [download, setDownload] = useState(false);
 
   const [inProgress, setInProgress] = useState([]);
 
@@ -69,10 +70,15 @@ export default function Home({ storedSongs }) {
   }
 
   const sendForConvertion = async (list) => {
+    if (list.length === 0) {
+      notify("Please add a url first!", { type: "warning" });
+      return;
+    }
     const buildProgress = list.map((item) => ({ id: item, progress: 0 }));
     setInProgress(buildProgress);
     socket.current.emit("downloadVideos", list);
     setList([]);
+    setDownload(true);
   };
 
   const refreshData = () => {
@@ -83,6 +89,7 @@ export default function Home({ storedSongs }) {
     const { videoId } = response.data;
     setInProgress((prev) => prev.filter((item) => item.id != videoId));
     refreshData();
+    setDownload(false);
   };
 
   return (
@@ -92,6 +99,7 @@ export default function Home({ storedSongs }) {
         url={url}
         handleChange={handleChange}
         handleAddUrl={handleAddUrl}
+        downloading={download}
         onSubmit={() => sendForConvertion(list)}
       />
       <UrlTabs urls={list} />
@@ -102,8 +110,7 @@ export default function Home({ storedSongs }) {
           ))}
         </div>
       )}
-
-      <MusicLibrary storedSongs={storedSongs} />
+      {storedSongs.length > 0 && <MusicLibrary storedSongs={storedSongs} />}
     </div>
   );
 }
