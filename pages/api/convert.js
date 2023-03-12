@@ -10,7 +10,7 @@ const YD = new YoutubeMp3Downloader({
   ffmpegPath,
   outputPath,
   youtubeVideoQuality: "highestaudio",
-  queueParallelism: 3,
+  queueParallelism: 5,
   progressTimeout: 2000,
   allowWebm: false,
 });
