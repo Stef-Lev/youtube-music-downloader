@@ -1,6 +1,7 @@
 import React from "react";
 
 function DownloadForm({
+  downloadType,
   url,
   handleChange,
   handleAddUrl,
@@ -10,7 +11,9 @@ function DownloadForm({
   return (
     <div className="p-2 mb-[16px] w-full">
       <div className="flex justify-center items-center w-full mb-[10px]">
-        <h1 className="font-bold text-2xl">YouTube Music Downloader</h1>
+        <h1 className="font-bold text-2xl">
+          YouTube {downloadType === "audio" ? "Music" : "Video"} Downloader
+        </h1>
       </div>
       <div className="flex justify-center items-center w-full">
         <p>Please add a valid YouTube url</p>
