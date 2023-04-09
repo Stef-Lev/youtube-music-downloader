@@ -2,16 +2,14 @@ import { useState, useEffect, useRef } from "react";
 import { toast } from "react-toastify";
 import Logo from "@/components/Logo";
 // import { Puff } from "react-loader-spinner";
+import BackHeader from "@/components/BackHeader";
 import getVideoId from "helpers/getVideoIDFromURL";
 import { useRouter } from "next/router";
 import ItemStatus from "@/components/ItemStatus";
 import UrlTabs from "@/components/UrlTabs";
 import io from "socket.io-client";
-import MusicLibrary from "@/components/MusicLibrary";
+import Library from "@/components/Library";
 import DownloadForm from "@/components/DownloadForm";
-
-// const defaultUrls = ["uHjZphtQ5_Q", "yX0UE8BoUeQ", "fNrlgeMJgxU"];
-// const defaultUrls = ["stefanos77"];
 
 export default function Home({ storedSongs }) {
   const socket = useRef(null);
@@ -92,25 +90,28 @@ export default function Home({ storedSongs }) {
   };
 
   return (
-    <div className="flex flex-col items-center">
-      <Logo downloadType="audio" />
-      <DownloadForm
-        downloadType="audio"
-        url={url}
-        handleChange={handleChange}
-        handleAddUrl={handleAddUrl}
-        downloading={download}
-        onSubmit={() => sendForConvertion(list)}
-      />
-      <UrlTabs urls={list} />
-      {inProgress.length > 0 && (
-        <div className="w-full md:w-[620px] p-2">
-          {inProgress.map((item) => (
-            <ItemStatus key={item.id} item={item} />
-          ))}
-        </div>
-      )}
-      {storedSongs.length > 0 && <MusicLibrary storedSongs={storedSongs} />}
+    <div>
+      <BackHeader />
+      <div className="flex flex-col items-center">
+        <Logo downloadType="audio" />
+        <DownloadForm
+          downloadType="audio"
+          url={url}
+          handleChange={handleChange}
+          handleAddUrl={handleAddUrl}
+          downloading={download}
+          onSubmit={() => sendForConvertion(list)}
+        />
+        <UrlTabs urls={list} />
+        {inProgress.length > 0 && (
+          <div className="w-full md:w-[620px] p-2">
+            {inProgress.map((item) => (
+              <ItemStatus key={item.id} item={item} />
+            ))}
+          </div>
+        )}
+        {storedSongs.length > 0 && <Library storedItems={storedSongs} />}
+      </div>
     </div>
   );
 }

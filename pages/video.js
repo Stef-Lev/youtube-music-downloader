@@ -1,108 +1,92 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { toast } from "react-toastify";
 import Logo from "@/components/Logo";
 import { useRouter } from "next/router";
-import Image from "next/image";
-import io from "socket.io-client";
-import MusicLibrary from "@/components/MusicLibrary";
+import BackHeader from "@/components/BackHeader";
+import Library from "@/components/Library";
+import ItemStatus from "@/components/ItemStatus";
 import DownloadForm from "@/components/DownloadForm";
+import io from "socket.io-client";
 
-export default function Home({ storedSongs }) {
+export default function Home({ storedVideos }) {
   const socket = useRef(null);
   const router = useRouter();
   const [url, setUrl] = useState("");
-  const [videoData, setVideoData] = useState("");
   const [download, setDownload] = useState(false);
+  const [inProgress, setInprogress] = useState(null);
+
+  useEffect(() => {
+    socketInitializer();
+  }, []);
+
+  const socketInitializer = async () => {
+    await fetch("/api/downloadVideo");
+    if (!socket.current) {
+      socket.current = io();
+
+      socket.current.on("connect", () => {
+        console.log("connected");
+      });
+
+      socket.current.on("showError", (err) => {
+        console.log("ERROR", err);
+      });
+
+      socket.current.on("showProgress", (msg) => {
+        console.log("Progress:", msg);
+        setInprogress(msg.percentage);
+      });
+
+      socket.current.on("showComplete", (response) => {
+        console.log(response);
+        setDownload(false);
+        notify(response.msg, { type: "success" });
+      });
+    }
+  };
 
   const handleChange = (ev) => {
     setUrl(ev.target.value);
   };
 
   const handleAddUrl = () => {
-    if (url.length) {
-      fetch("/api/showVideoData", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          vidUrl: url,
-        }),
-      })
-        .then((res) => res.json())
-        .then((data) => setVideoData(data.data));
-      setUrl("");
-    }
+    console.log(url);
   };
 
   function notify(msg, options = {}) {
     toast(msg, { ...options });
   }
 
-  const sendForConvertion = async (list) => {
-    if (list.length === 0) {
-      notify("Please add a url first!", { type: "warning" });
-      return;
-    }
-    const buildProgress = list.map((item) => ({ id: item, progress: 0 }));
-    setInProgress(buildProgress);
-    socket.current.emit("downloadVideos", list);
-    setList([]);
+  const sendForConvertion = async () => {
     setDownload(true);
+    socket.current.emit("downloadVideo", url);
   };
 
-  const refreshData = () => {
-    router.replace(router.asPath);
-  };
-
-  const handleComplete = (response) => {
-    const { videoId } = response.data;
-    setInProgress((prev) => prev.filter((item) => item.id != videoId));
-    refreshData();
-    setDownload(false);
-  };
-
-  //   ypoga
-  //https://www.youtube.com/watch?v=VF9PKkZgFy4
-
-  console.log("videoData", videoData);
+  console.log(storedVideos);
 
   return (
-    <div className="flex flex-col items-center">
-      <Logo downloadType="video" />
-      <DownloadForm
-        downloadType="video"
-        url={url}
-        handleChange={handleChange}
-        handleAddUrl={handleAddUrl}
-        downloading={download}
-        onSubmit={() => sendForConvertion(list)}
-      />
-      {videoData && (
-        <div>
-          <h1 className="text-center text-lg">{videoData.title}</h1>
-          <div>
-            <Image
-              alt="thumbnail"
-              src={videoData.thumbnails[4].url}
-              height={960}
-              width={540}
-            />
+    <div>
+      <BackHeader />
+      <div className="flex flex-col items-center">
+        <Logo downloadType="video" />
+        <DownloadForm
+          downloadType="video"
+          url={url}
+          handleChange={handleChange}
+          handleAddUrl={handleAddUrl}
+          downloading={download}
+          onSubmit={() => {
+            console.log("SENT FOR CONVERTION");
+            sendForConvertion();
+          }}
+        />
+        {inProgress && (
+          <div className="w-full md:w-[620px] p-2">
+            <ItemStatus item={{ progress: inProgress }} />
           </div>
-        </div>
-      )}
-      {videoData &&
-        videoData.formatsVideo.map((item, idx) => {
-          if (item.container === "mp4") {
-            return (
-              <div key={idx + 1}>
-                {item.container} {item.qualityLabel}
-              </div>
-            );
-          } else {
-            return null;
-          }
-        })}
+        )}
+        {storedVideos.length > 0 && <Library storedItems={storedVideos} />}
+      </div>
     </div>
   );
 }
@@ -111,12 +95,12 @@ export async function getServerSideProps() {
   const fs = require("fs");
   const path = require("path");
 
-  const mp3Folder = path.join(process.cwd(), "mp3s");
+  const mp4Folder = path.join(process.cwd(), "mp4s");
 
-  let storedSongs = [];
-  fs.readdirSync(mp3Folder).forEach((file) => {
-    storedSongs.push(file);
+  let storedVideos = [];
+  fs.readdirSync(mp4Folder).forEach((file) => {
+    storedVideos.push(file);
   });
 
-  return { props: { storedSongs } };
+  return { props: { storedVideos } };
 }
