@@ -6,7 +6,7 @@ const HomePage = () => {
     "bg-[#7DF5A5] rounded-[30px] py-2 px-[40px] text-xl font-extrabold";
   return (
     <div>
-      <div className="flex flex-row items-center justify-center mb-[30px]">
+      <div className="flex flex-row items-center justify-center mb-[20px]">
         <h1 className="font-bold text-2xl p-4">Youtube Downloader App</h1>
       </div>
 

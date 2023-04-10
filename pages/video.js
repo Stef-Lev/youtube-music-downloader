@@ -20,7 +20,7 @@ export default function Home({ storedVideos }) {
   }, []);
 
   const socketInitializer = async () => {
-    await fetch("/api/downloadVideo");
+    await fetch("/api/convertVideo");
     if (!socket.current) {
       socket.current = io();
 
