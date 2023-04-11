@@ -25,7 +25,7 @@ export default function Home({ storedVideos }) {
       socket.current = io();
 
       socket.current.on("connect", () => {
-        console.log("connected");
+        console.log("video connected");
       });
 
       socket.current.on("showError", (err) => {
@@ -38,9 +38,7 @@ export default function Home({ storedVideos }) {
       });
 
       socket.current.on("showComplete", (response) => {
-        console.log(response);
-        setDownload(false);
-        notify(response.msg, { type: "success" });
+        handleComplete(response);
       });
     }
   };
@@ -60,9 +58,20 @@ export default function Home({ storedVideos }) {
   const sendForConvertion = async () => {
     setDownload(true);
     socket.current.emit("downloadVideo", url);
+    setUrl("");
   };
 
-  console.log(storedVideos);
+  const refreshData = () => {
+    router.replace(router.asPath);
+  };
+
+  const handleComplete = (response) => {
+    refreshData();
+    console.log(response);
+    setDownload(false);
+    setInprogress(null);
+    notify(response.msg, { type: "success" });
+  };
 
   return (
     <div>
@@ -76,7 +85,6 @@ export default function Home({ storedVideos }) {
           handleAddUrl={handleAddUrl}
           downloading={download}
           onSubmit={() => {
-            console.log("SENT FOR CONVERTION");
             sendForConvertion();
           }}
         />

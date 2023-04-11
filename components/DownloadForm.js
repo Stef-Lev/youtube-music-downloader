@@ -38,7 +38,7 @@ function DownloadForm({
       </div>
       <div className="flex justify-center">
         <button
-          disabled={downloading}
+          disabled={downloading || !url}
           className="bg-red-500 rounded-[30px] py-2 w-[200px] text-xl font-bold text-white mb-[10px]  disabled:opacity-50"
           onClick={onSubmit}
         >

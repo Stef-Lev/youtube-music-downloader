@@ -44,6 +44,7 @@ export default function handler(req, res) {
     };
 
     const downloadVideos = async (list) => {
+      console.log("Download started");
       list.forEach((item) => {
         YD.download(item);
         YD.on("error", function (error) {

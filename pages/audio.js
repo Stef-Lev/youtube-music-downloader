@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { toast } from "react-toastify";
 import Logo from "@/components/Logo";
-// import { Puff } from "react-loader-spinner";
 import BackHeader from "@/components/BackHeader";
 import getVideoId from "helpers/getVideoIDFromURL";
 import { useRouter } from "next/router";
@@ -29,7 +28,7 @@ export default function Home({ storedSongs }) {
       socket.current = io();
 
       socket.current.on("connect", () => {
-        console.log("connected");
+        console.log("audio connected");
       });
 
       socket.current.on("showError", (err) => {
