@@ -5,7 +5,8 @@ function DownloadForm({
   url,
   handleChange,
   onSubmit,
-  downloading,
+  progress,
+  stage,
 }) {
   return (
     <div className="p-2 mb-[16px] w-full">
@@ -31,11 +32,12 @@ function DownloadForm({
       </div>
       <div className="flex justify-center">
         <button
-          disabled={downloading || !url}
-          className="bg-[#7DF5A5] rounded-[30px] py-2 w-[200px] text-xl font-bold text-[#1b212b] my-[10px]  disabled:opacity-50"
+          disabled={!url || stage || progress}
+          className="bg-[#7DF5A5] rounded-[30px] py-2 px-4 w-[260px] text-xl font-bold text-[#1b212b] my-[10px]  disabled:opacity-50"
           onClick={onSubmit}
         >
-          {downloading ? "Downloading" : "Convert"}
+          {stage ? stage : "Convert"}
+          {progress && ` ${Math.round(progress)}%`}
         </button>
       </div>
     </div>

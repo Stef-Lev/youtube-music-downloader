@@ -4,7 +4,6 @@ import Logo from "@/components/Logo";
 import { useRouter } from "next/router";
 import BackHeader from "@/components/BackHeader";
 import Library from "@/components/Library";
-import ItemStatus from "@/components/ItemStatus";
 import DownloadForm from "@/components/DownloadForm";
 import io from "socket.io-client";
 import getVideoId from "helpers/getVideoIDFromURL";
@@ -13,8 +12,7 @@ export default function Home({ storedVideos }) {
   const socket = useRef(null);
   const router = useRouter();
   const [url, setUrl] = useState("");
-  const [download, setDownload] = useState(false);
-  const [inProgress, setInprogress] = useState(null);
+  const [progress, setProgress] = useState(null);
   const [stage, setStage] = useState("");
 
   useEffect(() => {
@@ -40,22 +38,19 @@ export default function Home({ storedVideos }) {
       socket.current.on("showError", (err) => {
         console.error("Socket error:", err);
         toast.error(err);
-        setDownload(false);
-        setInprogress(null);
+        setProgress(null);
         setStage("");
       });
 
       socket.current.on("showProgress", (data) => {
         console.log("Progress:", data);
-
-        setInprogress(data.percent);
-
+        setProgress(data.percent);
         setStage(data.stage);
       });
 
       socket.current.on("showComplete", (response) => {
         handleComplete(response);
-        setInprogress(null);
+        setProgress(null);
         setStage("");
       });
     }
@@ -84,8 +79,7 @@ export default function Home({ storedVideos }) {
       return;
     }
 
-    // setDownload(true);
-    socket.current.emit("downloadVideo", videoId); // send only the video ID
+    socket.current.emit("downloadVideo", videoId);
     setUrl("");
   };
 
@@ -96,12 +90,11 @@ export default function Home({ storedVideos }) {
   const handleComplete = (response) => {
     refreshData();
     console.log("Conversion complete:", response);
-    setDownload(false);
-    setInprogress(null);
+    setProgress(null);
     notify(response.msg, { type: "success" });
   };
 
-  console.log({ inProgress });
+  console.log({ progress });
 
   return (
     <div>
@@ -112,7 +105,8 @@ export default function Home({ storedVideos }) {
           downloadType="video"
           url={url}
           handleChange={handleChange}
-          downloading={download}
+          progress={progress}
+          stage={stage}
           onSubmit={sendForConvertion}
         />
         {storedVideos.length > 0 && <Library storedItems={storedVideos} />}

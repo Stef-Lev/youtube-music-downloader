@@ -120,7 +120,7 @@ export default async function handler(req, res) {
             }
           });
 
-          sendComplete({ msg: "Done! Final video saved." });
+          sendComplete({ msg: "Done! Video saved!" });
         } catch (err) {
           console.error(err);
           sendError("Failed to download or process video.");

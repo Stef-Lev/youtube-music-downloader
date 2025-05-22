@@ -4,7 +4,7 @@ function Library({ storedItems }) {
   return (
     <div className="w-full flex justify-center bg-[#11141a] pt-[10px]">
       <div className="w-full md:w-[600px]">
-        <h3 className="text-center text-xl font-bold my-[10px] text-white">
+        <h3 className="text-center text-xl font-bold mb-[10px] text-white">
           Downloaded files
         </h3>
         <div className="px-[10px] pb-[80px]">
