@@ -3,9 +3,9 @@ import { useRouter } from "next/router";
 function BackHeader() {
   const router = useRouter();
   return (
-    <div className="cursor-pointer" onClick={() => router.back()}>
+    <div className="cursor-pointer p-4" onClick={() => router.back()}>
       <svg
-        fill="#000000"
+        fill="#fff"
         width="40px"
         height="40px"
         viewBox="0 0 32 32"

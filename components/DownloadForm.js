@@ -10,11 +10,11 @@ function DownloadForm({
   return (
     <div className="p-2 mb-[16px] w-full">
       <div className="flex justify-center items-center w-full mb-[10px]">
-        <h1 className="font-bold text-2xl">
+        <h1 className="font-bold text-2xl text-[#7DF5A5]">
           YouTube {downloadType === "audio" ? "Music" : "Video"} Downloader
         </h1>
       </div>
-      <div className="flex justify-center items-center w-full">
+      <div className="flex justify-center items-center w-full text-white">
         <p>Please add a valid YouTube url</p>
       </div>
 
@@ -32,7 +32,7 @@ function DownloadForm({
       <div className="flex justify-center">
         <button
           disabled={downloading || !url}
-          className="bg-red-500 rounded-[30px] py-2 w-[200px] text-xl font-bold text-white mb-[10px]  disabled:opacity-50"
+          className="bg-[#7DF5A5] rounded-[30px] py-2 w-[200px] text-xl font-bold text-[#1b212b] my-[10px]  disabled:opacity-50"
           onClick={onSubmit}
         >
           {downloading ? "Downloading" : "Convert"}
