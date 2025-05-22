@@ -1,79 +1,136 @@
-import { Server } from "socket.io";
-import which from "which";
+import { Server as SocketIOServer } from "socket.io";
+import cp from "child_process";
+import path from "path";
+import fs from "fs";
 
-const YoutubeMp3Downloader = require("youtube-mp3-downloader");
-const path = require("path");
-const ffmpegPath = which.sync("ffmpeg");
-const outputPath = path.join(process.cwd(), "mp3s");
+let io;
 
-const YD = new YoutubeMp3Downloader({
-  ffmpegPath,
-  outputPath,
-  youtubeVideoQuality: "highestaudio",
-  queueParallelism: 5,
-  progressTimeout: 2000,
-  allowWebm: false,
-});
+export default async function handler(req, res) {
+  if (!res.socket.server.io) {
+    console.log("Socket.IO is initializing");
+    io = new SocketIOServer(res.socket.server);
+    res.socket.server.io = io;
 
-export default function handler(req, res) {
-  if (res.socket.server.io) {
-    console.log("Socket is already running");
-    res.end();
-    return;
-  }
-  console.log("Socket is initializing");
-  const io = new Server(res.socket.server);
-  res.socket.server.io = io;
+    io.on("connection", (socket) => {
+      console.log("New socket connection:", socket.id);
 
-  io.on("connection", async (socket) => {
-    console.log(socket.id, "socketID");
+      const sendProgress = (msg) => socket.emit("showProgress", msg);
+      const sendError = (msg) => socket.emit("showError", msg);
+      const sendComplete = (msg) => socket.emit("showComplete", msg);
 
-    const sendError = async (msg) => {
-      socket.emit("showError", msg);
-    };
+      socket.on("downloadAudio", async (videoId) => {
+        if (!videoId) {
+          sendError("No video ID provided");
+          return;
+        }
 
-    const sendProgress = async (data) => {
-      const formattedData = {
-        id: data.videoId,
-        progress: data.progress.percentage,
-      };
-      socket.emit("showProgress", formattedData);
-    };
-    const sendComplete = async (msg) => {
-      socket.emit("showComplete", msg);
-    };
-
-    const downloadVideos = async (list) => {
-      console.log("Download started");
-      list.forEach((item) => {
-        YD.download(item);
-        YD.on("error", function (error) {
-          sendError({
-            status: error,
-            id: item,
-            message: `Could not download video with ID ${item}`,
-          });
-        });
-        YD.on("progress", function (progress) {
-          sendProgress(progress);
-        });
-        YD.on("finished", function (err, data) {
-          if (err) {
-            sendError({
-              status: err,
-              id: item,
-              message: "Something went wrong during downloading",
-            });
-          } else {
-            sendComplete({
-              status: "success",
-              data,
-            });
+        try {
+          const baseDir = path.join(process.cwd(), "mp3s");
+          const tempDir = path.join(baseDir, "temp");
+          const finalDir = baseDir;
+          if (!fs.existsSync(tempDir)) {
+            fs.mkdirSync(tempDir, { recursive: true });
           }
-        });
+
+          const outputName = videoId.replace(/[^a-zA-Z0-9]/g, "_");
+          const tempFile = path.join(tempDir, `${outputName}_raw.m4a`);
+          const finalFile = path.join(finalDir, `${outputName}.mp3`);
+
+          const ytdlPath = "C:\\ytdl\\yt-dlp.exe";
+          const ffmpegPath = "C:\\ffmpeg\\bin\\ffmpeg.exe";
+
+          // Step 1: Download best audio
+          sendProgress({ stage: "Downloading..." });
+          await new Promise((resolve, reject) => {
+            const ytProcess = cp.spawn(ytdlPath, [
+              "--newline",
+              "-f",
+              "bestaudio",
+              "-o",
+              tempFile,
+              `https://www.youtube.com/watch?v=${videoId}`,
+            ]);
+
+            ytProcess.stdout.on("data", (data) => {
+              const message = data.toString();
+              const percentMatch = message.match(/\[download\]\s+([\d.]+)%/);
+              const percent = percentMatch ? parseFloat(percentMatch[1]) : null;
+              sendProgress({
+                stage: "Downloading...",
+                message,
+                percent,
+              });
+            });
+
+            ytProcess.stderr.on("data", (data) => {
+              const message = data.toString();
+              const percentMatch = message.match(/\[download\]\s+([\d.]+)%/);
+              const percent = percentMatch ? parseFloat(percentMatch[1]) : null;
+              sendProgress({
+                stage: "Downloading...",
+                message,
+                percent,
+              });
+            });
+
+            ytProcess.on("close", (code) => {
+              if (code === 0) resolve();
+              else reject(new Error(`yt-dlp exited with code ${code}`));
+            });
+          });
+
+          // Step 2: Convert to MP3 with ffmpeg
+          sendProgress({ stage: "Encoding..." });
+          await new Promise((resolve, reject) => {
+            const ffmpegProcess = cp.spawn(ffmpegPath, [
+              "-y",
+              "-i",
+              tempFile,
+              "-vn",
+              "-c:a",
+              "libmp3lame",
+              "-q:a",
+              "0",
+              finalFile,
+            ]);
+
+            ffmpegProcess.stderr.on("data", (data) => {
+              const message = data.toString();
+              const percentMatch = message.match(/\[download\]\s+([\d.]+)%/);
+              const percent = percentMatch ? parseFloat(percentMatch[1]) : null;
+              sendProgress({
+                stage: "Encoding...",
+                message,
+                percent,
+              });
+            });
+
+            ffmpegProcess.on("close", (code) => {
+              if (code === 0) resolve();
+              else reject(new Error(`ffmpeg exited with code ${code}`));
+            });
+          });
+
+          // Clean up
+          fs.unlink(tempFile, (err) => {
+            if (err) {
+              console.warn("Could not delete temp file:", tempFile);
+            }
+          });
+
+          sendComplete({
+            msg: "Audio download complete!",
+            file: `${outputName}.mp3`,
+          });
+        } catch (err) {
+          console.error(err);
+          sendError("Failed to download or process audio.");
+        }
       });
-    };
-    socket.on("downloadVideos", downloadVideos);
-  });
+    });
+  } else {
+    console.log("Socket.IO already initialized");
+  }
+
   res.end();
 }

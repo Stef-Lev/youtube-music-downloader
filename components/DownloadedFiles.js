@@ -1,6 +1,6 @@
 import React from "react";
 
-function Library({ storedItems }) {
+function DownloadedFiles({ storedItems }) {
   return (
     <div className="w-full flex justify-center bg-[#11141a] pt-[10px]">
       <div className="w-full md:w-[600px]">
@@ -9,7 +9,7 @@ function Library({ storedItems }) {
         </h3>
         <div className="px-[10px] pb-[80px]">
           {storedItems.map((item, idx) => (
-            <div className="w-full">
+            <div className="w-full" key={idx + 1}>
               <p
                 className="truncate text-[12px] md:text-[14px] rounded-md px-[5px] py-[2px] mb-[5px] border-[1px] border-[#488f5f] text-[#488f5f]"
                 title={item}
@@ -24,4 +24,4 @@ function Library({ storedItems }) {
   );
 }
 
-export default Library;
+export default DownloadedFiles;

@@ -3,7 +3,7 @@ import { toast } from "react-toastify";
 import Logo from "@/components/Logo";
 import { useRouter } from "next/router";
 import BackHeader from "@/components/BackHeader";
-import Library from "@/components/Library";
+import DownloadedFiles from "@/components/DownloadedFiles";
 import DownloadForm from "@/components/DownloadForm";
 import io from "socket.io-client";
 import getVideoId from "helpers/getVideoIDFromURL";
@@ -66,14 +66,14 @@ export default function Home({ storedVideos }) {
 
   const sendForConvertion = () => {
     const trimmedUrl = url.trim();
-    console.log({ trimmedUrl });
+
     if (!trimmedUrl) {
       notify("Please enter a valid URL.", { type: "error" });
       return;
     }
 
     const videoId = getVideoId(trimmedUrl);
-    console.log({ videoId });
+
     if (!videoId) {
       notify("Invalid YouTube URL.", { type: "error" });
       return;
@@ -94,8 +94,6 @@ export default function Home({ storedVideos }) {
     notify(response.msg, { type: "success" });
   };
 
-  console.log({ progress });
-
   return (
     <div>
       <BackHeader />
@@ -109,7 +107,9 @@ export default function Home({ storedVideos }) {
           stage={stage}
           onSubmit={sendForConvertion}
         />
-        {storedVideos.length > 0 && <Library storedItems={storedVideos} />}
+        {storedVideos.length > 0 && (
+          <DownloadedFiles storedItems={storedVideos} />
+        )}
       </div>
     </div>
   );

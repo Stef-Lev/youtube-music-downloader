@@ -32,7 +32,6 @@ export default async function handler(req, res) {
             fs.mkdirSync(tempDir, { recursive: true });
           }
 
-          // For output names, sanitize videoId or add your own naming logic
           const outputName = videoId.replace(/[^a-zA-Z0-9]/g, "_");
 
           const tempFile = path.join(tempDir, `${outputName}_raw.mp4`);
@@ -41,7 +40,6 @@ export default async function handler(req, res) {
           const ytdlPath = `C:\\ytdl\\yt-dlp.exe`;
           const ffmpegPath = `C:\\ffmpeg\\bin\\ffmpeg.exe`;
 
-          // Step 1: Download using yt-dlp
           sendProgress({ stage: "Downloading..." });
           await new Promise((resolve, reject) => {
             const ytProcess = cp.spawn(ytdlPath, [
@@ -82,7 +80,6 @@ export default async function handler(req, res) {
             });
           });
 
-          // Step 2: Re-encode with ffmpeg
           sendProgress({ stage: "Encoding..." });
           await new Promise((resolve, reject) => {
             const ffmpegProcess = cp.spawn(ffmpegPath, [

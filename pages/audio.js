@@ -4,47 +4,54 @@ import Logo from "@/components/Logo";
 import BackHeader from "@/components/BackHeader";
 import getVideoId from "helpers/getVideoIDFromURL";
 import { useRouter } from "next/router";
-import ItemStatus from "@/components/ItemStatus";
-import UrlTabs from "@/components/UrlTabs";
 import io from "socket.io-client";
-import Library from "@/components/Library";
+import DownloadedFiles from "@/components/DownloadedFiles";
 import DownloadForm from "@/components/DownloadForm";
 
 export default function Home({ storedSongs }) {
   const socket = useRef(null);
   const router = useRouter();
   const [url, setUrl] = useState("");
-  const [list, setList] = useState([]);
-  const [download, setDownload] = useState(false);
-  const [inProgress, setInProgress] = useState([]);
+  const [progress, setProgress] = useState(null);
+  const [stage, setStage] = useState("");
 
   useEffect(() => {
     socketInitializer();
   }, []);
 
   const socketInitializer = async () => {
-    await fetch("/api/convertAudio");
+    try {
+      await fetch("/api/convertAudio"); // 👈 updated route here
+    } catch (err) {
+      console.error("Failed to initialize socket server:", err);
+      toast.error("Failed to connect to server.");
+      return;
+    }
+
     if (!socket.current) {
       socket.current = io();
 
       socket.current.on("connect", () => {
-        console.log("audio connected");
+        console.log("Socket connected for audio");
       });
 
       socket.current.on("showError", (err) => {
-        notify(err.message, { type: "error" });
-        setInProgress([]);
+        console.error("Socket error:", err);
+        toast.error(err);
+        setProgress(null);
+        setStage("");
       });
-      socket.current.on("showComplete", (response) => handleComplete(response));
+
       socket.current.on("showProgress", (data) => {
-        setInProgress((prev) =>
-          prev.map((item) => {
-            if (item.id == data.id) {
-              item.progress = data.progress;
-            }
-            return item;
-          })
-        );
+        console.log("Progress:", data);
+        setProgress(data.percent);
+        setStage(data.stage);
+      });
+
+      socket.current.on("showComplete", (response) => {
+        handleComplete(response);
+        setProgress(null);
+        setStage("");
       });
     }
   };
@@ -57,16 +64,21 @@ export default function Home({ storedSongs }) {
     toast(msg, { ...options });
   }
 
-  const sendForConvertion = async (list) => {
-    if (list.length === 0) {
-      notify("Please add a url first!", { type: "warning" });
+  const sendForConvertion = () => {
+    const trimmedUrl = url.trim();
+
+    if (!trimmedUrl) {
+      notify("Please enter a valid URL.", { type: "error" });
       return;
     }
-    const buildProgress = list.map((item) => ({ id: item, progress: 0 }));
-    setInProgress(buildProgress);
-    socket.current.emit("downloadVideos", list);
-    setList([]);
-    setDownload(true);
+    const videoId = getVideoId(trimmedUrl);
+    if (!videoId) {
+      notify("Invalid YouTube URL.", { type: "error" });
+      return;
+    }
+    socket.current.emit("downloadAudio", videoId);
+    setUrl("");
+    console.log("started", videoId);
   };
 
   const refreshData = () => {
@@ -74,10 +86,10 @@ export default function Home({ storedSongs }) {
   };
 
   const handleComplete = (response) => {
-    const { videoId } = response.data;
-    setInProgress((prev) => prev.filter((item) => item.id != videoId));
     refreshData();
-    setDownload(false);
+    console.log("Conversion complete:", response);
+    setProgress(null);
+    notify(response.msg, { type: "success" });
   };
 
   return (
@@ -89,18 +101,13 @@ export default function Home({ storedSongs }) {
           downloadType="audio"
           url={url}
           handleChange={handleChange}
-          downloading={download}
-          onSubmit={() => sendForConvertion(list)}
+          progress={progress}
+          stage={stage}
+          onSubmit={sendForConvertion}
         />
-        <UrlTabs urls={list} />
-        {inProgress.length > 0 && (
-          <div className="w-full md:w-[620px] p-2">
-            {inProgress.map((item) => (
-              <ItemStatus key={item.id} item={item} />
-            ))}
-          </div>
+        {storedSongs.length > 0 && (
+          <DownloadedFiles storedItems={storedSongs} />
         )}
-        {storedSongs.length > 0 && <Library storedItems={storedSongs} />}
       </div>
     </div>
   );
