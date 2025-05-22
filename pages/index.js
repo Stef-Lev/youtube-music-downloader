@@ -1,33 +1,25 @@
-import Link from "next/link";
-import Logo from "@/components/Logo";
+import PageLink from "@/components/PageLink";
 
 const HomePage = () => {
-  const routeBtn =
-    "bg-[#7DF5A5] rounded-[30px] py-2 px-[40px] text-xl font-extrabold";
   return (
-    <div>
+    <div className="h-[100dvh] p-4">
       <div className="flex flex-row items-center justify-center mb-[20px]">
-        <h1 className="font-bold text-2xl p-4">Youtube Downloader App</h1>
+        <h1 className="font-bold text-2xl p-4 text-[#7DF5A5]">
+          Youtube Downloader App
+        </h1>
       </div>
 
-      <div className="flex flex-row items-center justify-center gap-4 h-[200px]">
-        <div>
-          <Link className={routeBtn} href="/audio">
-            Download Audio (.mp3)
-          </Link>
-          <div className="mt-[20px]">
-            <Logo downloadType="audio" />
-          </div>
-        </div>
-
-        <div>
-          <Link className={routeBtn} href="/video">
-            Download Video (.mp4)
-          </Link>
-          <div className="mt-[20px]">
-            <Logo downloadType="video" />
-          </div>
-        </div>
+      <div className="flex flex-col md:flex-row items-center justify-center gap-4">
+        <PageLink
+          title="Download Audio (.mp3)"
+          href="/audio"
+          downloadType="audio"
+        />
+        <PageLink
+          title={"Download Video (.mp4)"}
+          href={"/video"}
+          downloadType="video"
+        />
       </div>
     </div>
   );

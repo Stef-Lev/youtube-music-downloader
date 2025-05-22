@@ -2,10 +2,10 @@ import React from "react";
 
 function Logo({ downloadType }) {
   return (
-    <div className="flex items-center justify-center w-full py-[10px]">
+    <div className="flex items-center justify-center w-full py-[20px]">
       <svg
-        width="70px"
-        height="70px"
+        width="50px"
+        height="50px"
         viewBox="0 0 16 16"
         xmlns="http://www.w3.org/2000/svg"
         fill="none"
@@ -19,6 +19,7 @@ function Logo({ downloadType }) {
       <svg
         width="30px"
         height="30px"
+        fill="#fff"
         viewBox="0 0 48 48"
         xmlns="http://www.w3.org/2000/svg"
       >
@@ -37,8 +38,8 @@ function Logo({ downloadType }) {
 
       {downloadType === "audio" && (
         <svg
-          height="70px"
-          width="70px"
+          height="50px"
+          width="50px"
           version="1.1"
           id="Layer_1"
           xmlns="http://www.w3.org/2000/svg"
@@ -127,8 +128,8 @@ function Logo({ downloadType }) {
 
       {downloadType === "video" && (
         <svg
-          height="70px"
-          width="70px"
+          height="50px"
+          width="50px"
           version="1.1"
           id="Layer_1"
           xmlns="http://www.w3.org/2000/svg"
