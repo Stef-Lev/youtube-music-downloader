@@ -4,7 +4,6 @@ function DownloadForm({
   downloadType,
   url,
   handleChange,
-  handleAddUrl,
   onSubmit,
   downloading,
 }) {
@@ -28,12 +27,6 @@ function DownloadForm({
             value={url}
             onChange={handleChange}
           />
-          <button
-            className="bg-[#7DF5A5] rounded-[30px] px-2 font-bold h-[40px] w-[30%] md:w-[160px]"
-            onClick={handleAddUrl}
-          >
-            Add url
-          </button>
         </div>
       </div>
       <div className="flex justify-center">

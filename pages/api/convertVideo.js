@@ -1,191 +1,135 @@
-import { Server } from "socket.io";
-const readline = require("readline");
-const ytdl = require("ytdl-core");
-const cp = require("child_process");
+import { Server as SocketIOServer } from "socket.io";
+import cp from "child_process";
+import path from "path";
+import fs from "fs";
+
+let io;
 
 export default async function handler(req, res) {
-  if (res.socket.server.io) {
-    console.log("Socket is already running");
-    res.end();
-    return;
-  }
-  console.log("Socket is initializing");
-  const io = new Server(res.socket.server);
-  res.socket.server.io = io;
+  if (!res.socket.server.io) {
+    console.log("Socket.IO is initializing");
+    io = new SocketIOServer(res.socket.server);
+    res.socket.server.io = io;
 
-  io.on("connection", async (socket) => {
-    console.log(socket.id, "socketID");
+    io.on("connection", (socket) => {
+      console.log("New socket connection:", socket.id);
 
-    const sendError = async (msg) => {
-      socket.emit("showError", msg);
-    };
+      const sendProgress = (msg) => socket.emit("showProgress", msg);
+      const sendError = (msg) => socket.emit("showError", msg);
+      const sendComplete = (msg) => socket.emit("showComplete", msg);
 
-    const sendProgress = async (msg) => {
-      console.log(msg);
-      socket.emit("showProgress", msg);
-    };
+      socket.on("downloadVideo", async (videoId) => {
+        if (!videoId) {
+          sendError("No video ID provided");
+          return;
+        }
 
-    const sendComplete = async (msg) => {
-      console.log(msg);
-      socket.emit("showComplete", msg);
-    };
-
-    const downloadVideo = async (url) => {
-      try {
-        const tracker = {
-          start: Date.now(),
-          audio: { downloaded: 0, total: Infinity },
-          video: { downloaded: 0, total: Infinity },
-          merged: { frame: 0, speed: "0x", fps: 0 },
-        };
-
-        // Get audio and video streams
-        const audio = ytdl(url, { quality: "highestaudio" }).on(
-          "progress",
-          (_, downloaded, total) => {
-            tracker.audio = { downloaded, total };
+        try {
+          const baseDir = path.join(process.cwd(), "mp4s");
+          const tempDir = path.join(baseDir, "temp");
+          const finalDir = baseDir;
+          if (!fs.existsSync(tempDir)) {
+            fs.mkdirSync(tempDir, { recursive: true });
           }
-        );
-        const video = ytdl(url, { quality: "highestvideo" }).on(
-          "progress",
-          (_, downloaded, total) => {
-            tracker.video = { downloaded, total };
-          }
-        );
-        let videoName;
-        await ytdl.getInfo(url).then((info) => {
-          const videoTitle = info.videoDetails.title;
-          videoName = videoTitle
-            .replace(/[^a-zA-Z0-9α-ωΑ-Ωίϊΐόάέύϋΰήώ]/g, "_")
-            .replace(/\s+/g, "_");
-        });
-        // Prepare the progress bar
-        let progressbarHandle = null;
-        const progressbarInterval = 1000;
-        const showProgress = () => {
-          readline.cursorTo(process.stdout, 0);
-          const toMB = (i) => (i / 1024 / 1024).toFixed(2);
 
-          process.stdout.write(
-            `Audio  | ${(
-              (tracker.audio.downloaded / tracker.audio.total) *
-              100
-            ).toFixed(2)}% processed `
-          );
-          process.stdout.write(
-            `(${toMB(tracker.audio.downloaded)}MB of ${toMB(
-              tracker.audio.total
-            )}MB).${" ".repeat(10)}\n`
-          );
+          // For output names, sanitize videoId or add your own naming logic
+          const outputName = videoId.replace(/[^a-zA-Z0-9]/g, "_");
 
-          process.stdout.write(
-            `Video  | ${(
-              (tracker.video.downloaded / tracker.video.total) *
-              100
-            ).toFixed(2)}% processed `
-          );
-          process.stdout.write(
-            `(${toMB(tracker.video.downloaded)}MB of ${toMB(
-              tracker.video.total
-            )}MB).${" ".repeat(10)}\n`
-          );
+          const tempFile = path.join(tempDir, `${outputName}_raw.mp4`);
+          const finalFile = path.join(finalDir, `${outputName}.mp4`);
 
-          process.stdout.write(
-            `Merged | processing frame ${tracker.merged.frame} `
-          );
-          process.stdout.write(
-            `(at ${tracker.merged.fps} fps => ${
-              tracker.merged.speed
-            }).${" ".repeat(10)}\n`
-          );
+          const ytdlPath = `C:\\ytdl\\yt-dlp.exe`;
+          const ffmpegPath = `C:\\ffmpeg\\bin\\ffmpeg.exe`;
 
-          process.stdout.write(
-            `running for: ${((Date.now() - tracker.start) / 1000 / 60).toFixed(
-              2
-            )} Minutes.`
-          );
-          readline.moveCursor(process.stdout, 0, -3);
-          sendProgress({
-            percentage: +(
-              (tracker.video.downloaded / tracker.video.total) *
-              100
-            ).toFixed(2),
+          // Step 1: Download using yt-dlp
+          sendProgress({ stage: "Downloading..." });
+          await new Promise((resolve, reject) => {
+            const ytProcess = cp.spawn(ytdlPath, [
+              "-f",
+              "bestvideo+bestaudio",
+              "--merge-output-format",
+              "mp4",
+              "-o",
+              tempFile,
+              `https://www.youtube.com/watch?v=${videoId}`,
+            ]);
+
+            ytProcess.stdout.on("data", (data) => {
+              const message = data.toString();
+              const percentMatch = message.match(/\[download\]\s+([\d.]+)%/);
+              const percent = percentMatch ? parseFloat(percentMatch[1]) : null;
+              sendProgress({
+                stage: "Downloading...",
+                message,
+                percent,
+              });
+            });
+
+            ytProcess.stderr.on("data", (data) => {
+              const message = data.toString();
+              const percentMatch = message.match(/\[download\]\s+([\d.]+)%/);
+              const percent = percentMatch ? parseFloat(percentMatch[1]) : null;
+              sendProgress({
+                stage: "Downloading...",
+                message,
+                percent,
+              });
+            });
+
+            ytProcess.on("close", (code) => {
+              if (code === 0) resolve();
+              else reject(new Error(`yt-dlp exited with code ${code}`));
+            });
           });
-        };
 
-        // Start the ffmpeg child process
-        const ffmpegPath = "C:\\ffmpeg\\bin\\ffmpeg.exe";
-        const ffmpegProcess = cp.spawn(
-          ffmpegPath,
-          [
-            // Remove ffmpeg's console spamming
-            "-loglevel",
-            "8",
-            "-hide_banner",
-            // Redirect/Enable progress messages
-            "-progress",
-            "pipe:3",
-            // Set inputs
-            "-i",
-            "pipe:4",
-            "-i",
-            "pipe:5",
-            // Map audio & video from streams
-            "-map",
-            "0:a",
-            "-map",
-            "1:v",
-            // Keep encoding
-            "-c:v",
-            "h264",
-            // Define output file
-            `./mp4s/${videoName}.mp4`,
-          ],
-          {
-            windowsHide: true,
-            stdio: [
-              /* Standard: stdin, stdout, stderr */
-              "inherit",
-              "inherit",
-              "inherit",
-              /* Custom: pipe:3, pipe:4, pipe:5 */
-              "pipe",
-              "pipe",
-              "pipe",
-            ],
-          }
-        );
-        ffmpegProcess.on("close", () => {
-          console.log("done");
-          // Cleanup
-          process.stdout.write("\n\n\n\n");
-          clearInterval(progressbarHandle);
-          sendComplete({ msg: "Video download succesful." });
-        });
+          // Step 2: Re-encode with ffmpeg
+          sendProgress({ stage: "Encoding..." });
+          await new Promise((resolve, reject) => {
+            const ffmpegProcess = cp.spawn(ffmpegPath, [
+              "-i",
+              tempFile,
+              "-c:v",
+              "libx264",
+              "-c:a",
+              "aac",
+              "-movflags",
+              "+faststart",
+              finalFile,
+            ]);
 
-        // Link streams
-        // FFmpeg creates the transformer streams and we just have to insert / read data
-        ffmpegProcess.stdio[3].on("data", (chunk) => {
-          // Start the progress bar
-          if (!progressbarHandle)
-            progressbarHandle = setInterval(showProgress, progressbarInterval);
-          // Parse the param=value list returned by ffmpeg
-          const lines = chunk.toString().trim().split("\n");
-          const args = {};
-          for (const l of lines) {
-            const [key, value] = l.split("=");
-            args[key.trim()] = value.trim();
-          }
-          tracker.merged = args;
-        });
-        audio.pipe(ffmpegProcess.stdio[4]);
-        video.pipe(ffmpegProcess.stdio[5]);
-      } catch (err) {
-        console.error("ERROR", err);
-      }
-    };
+            ffmpegProcess.stderr.on("data", (data) => {
+              const message = data.toString();
+              const percentMatch = message.match(/\[download\]\s+([\d.]+)%/);
+              const percent = percentMatch ? parseFloat(percentMatch[1]) : null;
+              sendProgress({
+                stage: "Encoding...",
+                message,
+                percent,
+              });
+            });
 
-    socket.on("downloadVideo", downloadVideo);
-  });
+            ffmpegProcess.on("close", (code) => {
+              if (code === 0) resolve();
+              else reject(new Error(`ffmpeg exited with code ${code}`));
+            });
+          });
+
+          fs.unlink(tempFile, (err) => {
+            if (err) {
+              console.warn("Could not delete temp file:", tempFile);
+            }
+          });
+
+          sendComplete({ msg: "Done! Final video saved." });
+        } catch (err) {
+          console.error(err);
+          sendError("Failed to download or process video.");
+        }
+      });
+    });
+  } else {
+    console.log("Socket.IO already initialized");
+  }
+
   res.end();
 }

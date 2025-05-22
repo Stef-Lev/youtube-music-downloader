@@ -53,14 +53,6 @@ export default function Home({ storedSongs }) {
     setUrl(ev.target.value);
   };
 
-  const handleAddUrl = () => {
-    if (url.length) {
-      let videoId = getVideoId(url);
-      setList([...list, videoId]);
-      setUrl("");
-    }
-  };
-
   function notify(msg, options = {}) {
     toast(msg, { ...options });
   }
@@ -97,7 +89,6 @@ export default function Home({ storedSongs }) {
           downloadType="audio"
           url={url}
           handleChange={handleChange}
-          handleAddUrl={handleAddUrl}
           downloading={download}
           onSubmit={() => sendForConvertion(list)}
         />

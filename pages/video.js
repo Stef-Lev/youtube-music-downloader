@@ -7,6 +7,7 @@ import Library from "@/components/Library";
 import ItemStatus from "@/components/ItemStatus";
 import DownloadForm from "@/components/DownloadForm";
 import io from "socket.io-client";
+import getVideoId from "helpers/getVideoIDFromURL";
 
 export default function Home({ storedVideos }) {
   const socket = useRef(null);
@@ -14,31 +15,48 @@ export default function Home({ storedVideos }) {
   const [url, setUrl] = useState("");
   const [download, setDownload] = useState(false);
   const [inProgress, setInprogress] = useState(null);
+  const [stage, setStage] = useState("");
 
   useEffect(() => {
     socketInitializer();
   }, []);
 
   const socketInitializer = async () => {
-    await fetch("/api/convertVideo");
+    try {
+      await fetch("/api/convertVideo");
+    } catch (err) {
+      console.error("Failed to initialize socket server:", err);
+      toast.error("Failed to connect to server.");
+      return;
+    }
+
     if (!socket.current) {
       socket.current = io();
 
       socket.current.on("connect", () => {
-        console.log("video connected");
+        console.log("Socket connected for video");
       });
 
       socket.current.on("showError", (err) => {
-        console.log("ERROR", err);
+        console.error("Socket error:", err);
+        toast.error(err);
+        setDownload(false);
+        setInprogress(null);
+        setStage("");
       });
 
-      socket.current.on("showProgress", (msg) => {
-        console.log("Progress:", msg);
-        setInprogress(msg.percentage);
+      socket.current.on("showProgress", (data) => {
+        console.log("Progress:", data);
+
+        setInprogress(data.percent);
+
+        setStage(data.stage);
       });
 
       socket.current.on("showComplete", (response) => {
         handleComplete(response);
+        setInprogress(null);
+        setStage("");
       });
     }
   };
@@ -47,17 +65,27 @@ export default function Home({ storedVideos }) {
     setUrl(ev.target.value);
   };
 
-  const handleAddUrl = () => {
-    console.log(url);
-  };
-
   function notify(msg, options = {}) {
     toast(msg, { ...options });
   }
 
-  const sendForConvertion = async () => {
-    setDownload(true);
-    socket.current.emit("downloadVideo", url);
+  const sendForConvertion = () => {
+    const trimmedUrl = url.trim();
+    console.log({ trimmedUrl });
+    if (!trimmedUrl) {
+      notify("Please enter a valid URL.", { type: "error" });
+      return;
+    }
+
+    const videoId = getVideoId(trimmedUrl);
+    console.log({ videoId });
+    if (!videoId) {
+      notify("Invalid YouTube URL.", { type: "error" });
+      return;
+    }
+
+    // setDownload(true);
+    socket.current.emit("downloadVideo", videoId); // send only the video ID
     setUrl("");
   };
 
@@ -67,11 +95,13 @@ export default function Home({ storedVideos }) {
 
   const handleComplete = (response) => {
     refreshData();
-    console.log(response);
+    console.log("Conversion complete:", response);
     setDownload(false);
     setInprogress(null);
     notify(response.msg, { type: "success" });
   };
+
+  console.log({ inProgress });
 
   return (
     <div>
@@ -82,17 +112,9 @@ export default function Home({ storedVideos }) {
           downloadType="video"
           url={url}
           handleChange={handleChange}
-          handleAddUrl={handleAddUrl}
           downloading={download}
-          onSubmit={() => {
-            sendForConvertion();
-          }}
+          onSubmit={sendForConvertion}
         />
-        {inProgress && (
-          <div className="w-full md:w-[620px] p-2">
-            <ItemStatus item={{ progress: inProgress }} />
-          </div>
-        )}
         {storedVideos.length > 0 && <Library storedItems={storedVideos} />}
       </div>
     </div>
@@ -106,9 +128,8 @@ export async function getServerSideProps() {
   const mp4Folder = path.join(process.cwd(), "mp4s");
 
   let storedVideos = [];
-  fs.readdirSync(mp4Folder).forEach((file) => {
-    storedVideos.push(file);
-  });
-
+  if (fs.existsSync(mp4Folder)) {
+    storedVideos = fs.readdirSync(mp4Folder);
+  }
   return { props: { storedVideos } };
 }

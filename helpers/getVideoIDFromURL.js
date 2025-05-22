@@ -1,6 +1,7 @@
 function getVideoId(url) {
-  let regex =
-    /(youtu.*be.*)\/(watch\?v=|embed\/|v|shorts|)(.*?((?=[&#?])|$))/gm;
-  return regex.exec(url)[3];
+  const regex =
+    /(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/))([\w-]{11})/;
+  const match = url.match(regex);
+  return match ? match[1] : null;
 }
 export default getVideoId;
