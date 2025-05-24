@@ -5,20 +5,32 @@ const HomePage = () => {
     <div className="h-[100dvh] p-4">
       <div className="flex flex-row items-center justify-center mb-[20px]">
         <h1 className="font-bold text-2xl p-4 text-[#7DF5A5]">
-          Youtube Downloader App
+          Audio and Video Downloader App
         </h1>
       </div>
 
       <div className="flex flex-col md:flex-row items-center justify-center gap-4">
         <PageLink
-          title="Download Audio (.mp3)"
+          title="Youtube to mp3"
           href="/audio"
-          downloadType="audio"
+          downloadType="youtubeAudio"
         />
         <PageLink
-          title={"Download Video (.mp4)"}
-          href={"/video"}
-          downloadType="video"
+          title="Youtube to mp4"
+          href="/video"
+          downloadType="youtubeVideo"
+        />
+      </div>
+      <div className="flex flex-col md:flex-row items-center justify-center gap-4 mt-4">
+        <PageLink
+          title="Video stream to mp4"
+          href="/stream"
+          downloadType="videoStream"
+        />
+        <PageLink
+          title="Instagram to mp4"
+          href="/instagram"
+          downloadType="instagram"
         />
       </div>
     </div>
