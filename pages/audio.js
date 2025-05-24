@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from "react";
-import { toast } from "react-toastify";
 import Logo from "@/components/Logo";
 import BackHeader from "@/components/BackHeader";
 import getVideoId from "helpers/getVideoIDFromURL";
@@ -7,8 +6,10 @@ import { useRouter } from "next/router";
 import io from "socket.io-client";
 import DownloadedFiles from "@/components/DownloadedFiles";
 import DownloadForm from "@/components/DownloadForm";
+import notify from "helpers/notify";
+import updateInput from "helpers/updateInput";
 
-export default function Home({ storedSongs }) {
+export default function Audio({ storedSongs }) {
   const socket = useRef(null);
   const router = useRouter();
   const [url, setUrl] = useState("");
@@ -24,7 +25,7 @@ export default function Home({ storedSongs }) {
       await fetch("/api/convertAudio"); // 👈 updated route here
     } catch (err) {
       console.error("Failed to initialize socket server:", err);
-      toast.error("Failed to connect to server.");
+      notify("Failed to connect to server.", { type: "error" });
       return;
     }
 
@@ -37,7 +38,7 @@ export default function Home({ storedSongs }) {
 
       socket.current.on("showError", (err) => {
         console.error("Socket error:", err);
-        toast.error(err);
+        notify(err, { type: "error" });
         setProgress(null);
         setStage("");
       });
@@ -55,14 +56,6 @@ export default function Home({ storedSongs }) {
       });
     }
   };
-
-  const handleChange = (ev) => {
-    setUrl(ev.target.value);
-  };
-
-  function notify(msg, options = {}) {
-    toast(msg, { ...options });
-  }
 
   const sendForConvertion = () => {
     const trimmedUrl = url.trim();
@@ -98,9 +91,9 @@ export default function Home({ storedSongs }) {
       <div className="flex flex-col items-center">
         <Logo downloadType="audio" />
         <DownloadForm
-          downloadType="audio"
+          downloadType="youtubeAudio"
           url={url}
-          handleChange={handleChange}
+          handleChange={(ev) => updateInput(ev, setUrl)}
           progress={progress}
           stage={stage}
           onSubmit={sendForConvertion}

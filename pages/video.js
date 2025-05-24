@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from "react";
-import { toast } from "react-toastify";
 import Logo from "@/components/Logo";
 import { useRouter } from "next/router";
 import BackHeader from "@/components/BackHeader";
@@ -7,8 +6,10 @@ import DownloadedFiles from "@/components/DownloadedFiles";
 import DownloadForm from "@/components/DownloadForm";
 import io from "socket.io-client";
 import getVideoId from "helpers/getVideoIDFromURL";
+import notify from "helpers/notify";
+import updateInput from "helpers/updateInput";
 
-export default function Home({ storedVideos }) {
+export default function Video({ storedVideos }) {
   const socket = useRef(null);
   const router = useRouter();
   const [url, setUrl] = useState("");
@@ -24,7 +25,7 @@ export default function Home({ storedVideos }) {
       await fetch("/api/convertVideo");
     } catch (err) {
       console.error("Failed to initialize socket server:", err);
-      toast.error("Failed to connect to server.");
+      notify("Failed to connect to server.", { type: "error" });
       return;
     }
 
@@ -37,7 +38,7 @@ export default function Home({ storedVideos }) {
 
       socket.current.on("showError", (err) => {
         console.error("Socket error:", err);
-        toast.error(err);
+        notify(err, { type: "error" });
         setProgress(null);
         setStage("");
       });
@@ -55,14 +56,6 @@ export default function Home({ storedVideos }) {
       });
     }
   };
-
-  const handleChange = (ev) => {
-    setUrl(ev.target.value);
-  };
-
-  function notify(msg, options = {}) {
-    toast(msg, { ...options });
-  }
 
   const sendForConvertion = () => {
     const trimmedUrl = url.trim();
@@ -100,9 +93,9 @@ export default function Home({ storedVideos }) {
       <div className="flex flex-col items-center">
         <Logo downloadType="video" />
         <DownloadForm
-          downloadType="video"
+          downloadType="youtubeVideo"
           url={url}
-          handleChange={handleChange}
+          handleChange={(ev) => updateInput(ev, setUrl)}
           progress={progress}
           stage={stage}
           onSubmit={sendForConvertion}
