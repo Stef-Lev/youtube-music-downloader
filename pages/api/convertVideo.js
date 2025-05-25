@@ -2,6 +2,7 @@ import { Server as SocketIOServer } from "socket.io";
 import cp from "child_process";
 import path from "path";
 import fs from "fs";
+import getVideoId from "helpers/getVideoIDFromURL";
 
 let io;
 
@@ -18,9 +19,9 @@ export default async function handler(req, res) {
       const sendError = (msg) => socket.emit("showError", msg);
       const sendComplete = (msg) => socket.emit("showComplete", msg);
 
-      socket.on("downloadVideo", async (videoId) => {
-        if (!videoId) {
-          sendError("No video ID provided");
+      socket.on("downloadVideo", async (videoUrl) => {
+        if (!videoUrl) {
+          sendError("No video url provided");
           return;
         }
 
@@ -31,7 +32,7 @@ export default async function handler(req, res) {
           if (!fs.existsSync(tempDir)) {
             fs.mkdirSync(tempDir, { recursive: true });
           }
-
+          const videoId = getVideoId(videoUrl);
           const outputName = videoId.replace(/[^a-zA-Z0-9]/g, "_");
 
           const tempFile = path.join(tempDir, `${outputName}_raw.mp4`);
