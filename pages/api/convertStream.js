@@ -9,7 +9,7 @@ export default async function handler(req, res) {
   if (!res.socket.server.io) {
     console.log("Socket.IO is initializing");
     io = new SocketIOServer(res.socket.server, {
-      maxHttpBufferSize: 1e8, // 100 MB
+      maxHttpBufferSize: 1e8,
     });
     res.socket.server.io = io;
 

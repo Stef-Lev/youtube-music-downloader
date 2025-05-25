@@ -248,25 +248,25 @@ function Logo({ downloadType }) {
             height="20"
             rx="5"
             stroke="#7DF5A5"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           />
           <circle
             cx="12"
             cy="12"
             r="4"
             stroke="#7DF5A5"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           />
           <path
             d="M18 6L18 6.01"
             stroke="#7DF5A5"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           />
         </svg>
       )}
