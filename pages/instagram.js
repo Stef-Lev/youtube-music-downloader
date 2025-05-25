@@ -23,7 +23,7 @@ export default function Instagram({ storedMedia }) {
 }
 
 export async function getServerSideProps(ctx) {
-  const path = ctx.resolvedUrl.replace(/^\/+/, ""); // "videos"
+  const path = ctx.resolvedUrl.replace(/^\/+/, "");
 
   const storedMedia = getStoredMedia(pageData[path].directory);
   return { props: { storedMedia } };
