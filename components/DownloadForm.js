@@ -1,4 +1,5 @@
 import React from "react";
+import c from "clsx";
 
 function DownloadForm({
   downloadType,
@@ -18,7 +19,7 @@ function DownloadForm({
   return (
     <div className="p-2 mb-[16px] w-full">
       <div className="flex justify-center items-center w-full mb-[10px]">
-        <h1 className="font-bold text-2xl text-[#7DF5A5]">{title}</h1>
+        <h1 className="font-bold text-2xl text-greenLight">{title}</h1>
       </div>
       <div className="flex justify-center items-center w-full text-white">
         <p>Please add a valid url</p>
@@ -38,7 +39,7 @@ function DownloadForm({
       <div className="flex justify-center">
         <button
           disabled={!url || stage || progress}
-          className="bg-[#7DF5A5] rounded-[30px] py-2 px-4 w-[260px] text-xl font-bold text-[#1b212b] my-[10px]  disabled:opacity-50"
+          className="bg-greenLight rounded-[30px] py-2 px-4 w-[260px] text-xl font-bold text-[#1b212b] my-[10px]  disabled:opacity-50"
           onClick={onSubmit}
         >
           {stage ? stage : "Convert"}
