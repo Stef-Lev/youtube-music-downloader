@@ -1,14 +1,10 @@
-import { useRouter } from "next/router";
 import Page from "@/components/Page";
 import getStoredMedia from "helpers/getStoredMedia";
 import pageData from "data/pageData";
 
-export default function Video({ storedMedia }) {
-  const router = useRouter();
-  const path = router.pathname;
-  const cleanPath = path.replace(/^\/+/, "");
+const Slug = ({ storedMedia, slug }) => {
   const { mediaKey, mediaType, directory, convertApi, socketEvent } =
-    pageData[cleanPath];
+    pageData[slug];
 
   return (
     <Page
@@ -20,11 +16,20 @@ export default function Video({ storedMedia }) {
       storedMedia={storedMedia}
     />
   );
-}
+};
+
+export default Slug;
 
 export async function getServerSideProps(ctx) {
-  const path = ctx.resolvedUrl.replace(/^\/+/, "");
+  const validSlugs = ["audio", "video", "stream", "instagram"];
+  const { slug } = ctx.params;
 
-  const storedMedia = getStoredMedia(pageData[path].directory);
-  return { props: { storedMedia } };
+  if (!validSlugs.includes(slug)) {
+    return {
+      notFound: true,
+    };
+  }
+
+  const storedMedia = getStoredMedia(pageData[slug].directory);
+  return { props: { storedMedia, slug } };
 }

@@ -6,8 +6,6 @@ import DownloadedFiles from "@/components/DownloadedFiles";
 import DownloadForm from "@/components/DownloadForm";
 import io from "socket.io-client";
 import notify from "helpers/notify";
-import updateInput from "helpers/updateInput";
-import pageData from "data/pageData";
 
 export default function Page({
   mediaType,
@@ -34,6 +32,7 @@ export default function Page({
 
   const socketInitializer = async () => {
     try {
+      console.log(`Sending request to /api/${convertApi}`);
       await fetch(`/api/${convertApi}`);
     } catch (err) {
       console.error("Failed to initialize socket server:", err);

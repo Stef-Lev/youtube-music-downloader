@@ -12,24 +12,24 @@ const HomePage = () => {
       <div className="flex flex-col md:flex-row items-center justify-center gap-4">
         <PageLink
           title="Youtube to mp3"
-          href="/audio"
+          href="/converter/audio"
           downloadType="youtubeAudio"
         />
         <PageLink
           title="Youtube to mp4"
-          href="/video"
+          href="/converter/video"
           downloadType="youtubeVideo"
         />
       </div>
       <div className="flex flex-col md:flex-row items-center justify-center gap-4 mt-4">
         <PageLink
           title="Video stream to mp4"
-          href="/stream"
+          href="/converter/stream"
           downloadType="videoStream"
         />
         <PageLink
           title="Instagram to mp4"
-          href="/instagram"
+          href="/converter/instagram"
           downloadType="instagram"
         />
       </div>
