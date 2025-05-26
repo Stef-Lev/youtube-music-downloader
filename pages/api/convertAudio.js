@@ -40,7 +40,6 @@ export default async function handler(req, res) {
           const ytdlPath = "C:\\ytdl\\yt-dlp.exe";
           const ffmpegPath = "C:\\ffmpeg\\bin\\ffmpeg.exe";
 
-          // Step 1: Download best audio
           sendProgress({ stage: "Downloading..." });
           await new Promise((resolve, reject) => {
             const ytProcess = cp.spawn(ytdlPath, [
@@ -80,7 +79,6 @@ export default async function handler(req, res) {
             });
           });
 
-          // Step 2: Convert to MP3 with ffmpeg
           sendProgress({ stage: "Encoding..." });
           await new Promise((resolve, reject) => {
             const ffmpegProcess = cp.spawn(ffmpegPath, [
@@ -112,7 +110,6 @@ export default async function handler(req, res) {
             });
           });
 
-          // Clean up
           fs.unlink(tempFile, (err) => {
             if (err) {
               console.warn("Could not delete temp file:", tempFile);

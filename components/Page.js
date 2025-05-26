@@ -32,7 +32,6 @@ export default function Page({
 
   const socketInitializer = async () => {
     try {
-      console.log(`Sending request to /api/${convertApi}`);
       await fetch(`/api/${convertApi}`);
     } catch (err) {
       console.error("Failed to initialize socket server:", err);

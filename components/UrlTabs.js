@@ -7,7 +7,7 @@ function UrlTabs({ urls }) {
         <>
           <h5 className="font-bold">Video IDs</h5>
           <div className="p-2 flex justify-center items-center w-full">
-            <div className="flex flex-wrap gap-1 p-1 flex w-full md:w-[620px] text-center">
+            <div className="flex flex-wrap gap-1 p-1 w-full md:w-[620px] text-center">
               {urls.length > 0 &&
                 urls.map((item, idx) => (
                   <div

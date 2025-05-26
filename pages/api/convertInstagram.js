@@ -3,7 +3,7 @@ import cp from "child_process";
 import path from "path";
 import fs from "fs";
 
-const ytdlPath = `C:\\ytdl\\yt-dlp.exe`; // Custom path to yt-dlp.exe
+const ytdlPath = `C:\\ytdl\\yt-dlp.exe`;
 
 let io;
 

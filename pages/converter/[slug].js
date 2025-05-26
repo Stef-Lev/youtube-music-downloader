@@ -3,12 +3,10 @@ import getStoredMedia from "helpers/getStoredMedia";
 import pageData from "data/pageData";
 
 const Slug = ({ storedMedia, slug }) => {
-  const { mediaKey, mediaType, directory, convertApi, socketEvent } =
-    pageData[slug];
+  const { mediaType, directory, convertApi, socketEvent } = pageData[slug];
 
   return (
     <Page
-      mediaKey={mediaKey}
       mediaType={mediaType}
       directory={directory}
       convertApi={convertApi}
