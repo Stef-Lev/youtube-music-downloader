@@ -4,7 +4,12 @@ import c from "clsx";
 function DownloadedFiles({ storedItems }) {
   return (
     <div
-      className={c("flex justify-center", "w-full bg-[#11141a]", "pt-[10px]")}
+      className={c(
+        "flex justify-center",
+        "w-full",
+        " bg-[#11141a]",
+        "pt-[10px]"
+      )}
     >
       <div className="w-full md:w-[600px]">
         <h3

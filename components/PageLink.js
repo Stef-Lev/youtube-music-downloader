@@ -1,15 +1,27 @@
 import Logo from "@/components/Logo";
 import { useRouter } from "next/navigation";
+import c from "clsx";
 
 const PageLink = (props) => {
   const { title, href, downloadType } = props;
-  const routeBtn =
-    "bg-greenLight rounded-[10px] text-lg font-bold py-2 flex justify-center";
   const router = useRouter();
+  const routeBtn = c(
+    "flex justify-center",
+    "py-2",
+    "rounded-[10px]",
+    "bg-greenLight",
+    "text-lg font-bold"
+  );
 
   return (
     <div
-      className="rounded-[20px] p-3 border-2 border-solid border-greenLight w-full md:w-[300px] lg:w-[400px] cursor-pointer"
+      className={c(
+        "w-full md:w-[300px] lg:w-[400px]",
+        "border-2 border-solid border-greenLight",
+        "p-3",
+        "rounded-[20px]",
+        "cursor-pointer"
+      )}
       onClick={() => router.push(href)}
     >
       <div className={routeBtn} href={href}>

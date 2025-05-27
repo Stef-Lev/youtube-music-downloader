@@ -15,21 +15,54 @@ function DownloadForm({
     videoStream: "Video Stream Downloader",
     instagram: "Instagram Video Downloader",
   };
+  const placeholderPerType = {
+    youtubeVideo: "https://www.youtube.com/watch?v=9bZkp7q19f0",
+    youtubeAudio: "https://www.youtube.com/watch?v=9bZkp7q19f0",
+    videoStream:
+      "https://live-hls-abr-cdn.livepush.io/live/bigbuckbunnyclip/index.m3u8",
+    instagram: "https://www.instagram.com/jaycactusmusic/reel/DKILkxSMja3",
+  };
+
   const title = titlesPerType[downloadType];
+  const placeholder = placeholderPerType[downloadType];
+
   return (
     <div className="p-2 mb-[16px] w-full">
-      <div className="flex justify-center items-center w-full mb-[10px]">
-        <h1 className="font-bold text-2xl text-greenLight">{title}</h1>
+      <div
+        className={c(
+          "flex justify-center items-center",
+          " w-full",
+          "mb-[10px]"
+        )}
+      >
+        <h1 className={c("font-bold", "text-2xl text-greenLight")}>{title}</h1>
       </div>
-      <div className="flex justify-center items-center w-full text-white">
+      <div
+        className={c(
+          "flex justify-center items-center",
+          "w-full",
+          "text-white"
+        )}
+      >
         <p>Please add a valid url</p>
       </div>
 
-      <div className="flex justify-center items-center w-full py-1">
-        <div className="flex items-center justify-center gap-3 w-[100%] mb-[10px]">
+      <div className={c("flex justify-center items-center", "w-full", "py-1")}>
+        <div
+          className={c(
+            "flex items-center justify-center",
+            "w-[100%]",
+            "gap-3 mb-[10px]"
+          )}
+        >
           <input
-            placeholder="https://www.youtube.com/watch?v=9bZkp7q19f0"
-            className="px-4 rounded-[30px] text-sm md:text-lg h-[40px] w-[70%] md:w-[500px] "
+            placeholder={placeholder}
+            className={c(
+              "h-[40px] w-[70%] md:w-[500px]",
+              "rounded-[30px]",
+              "px-4",
+              "text-sm md:text-lg"
+            )}
             type="text"
             value={url}
             onChange={handleChange}
@@ -39,7 +72,14 @@ function DownloadForm({
       <div className="flex justify-center">
         <button
           disabled={!url || stage || progress}
-          className="bg-greenLight rounded-[30px] py-2 px-4 w-[260px] text-xl font-bold text-[#1b212b] my-[10px]  disabled:opacity-50"
+          className={c(
+            "py-2 px-4 my-[10px]",
+            "w-[260px]",
+            "text-xl font-bold text-[#1b212b]",
+            "rounded-[30px]",
+            "bg-greenLight",
+            "disabled:opacity-50"
+          )}
           onClick={onSubmit}
         >
           {stage ? stage : "Convert"}
