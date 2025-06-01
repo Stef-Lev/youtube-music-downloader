@@ -74,6 +74,14 @@ export default function Page({
       notify("Please enter a valid URL.", { type: "error" });
       return;
     }
+
+    if (!socket.current || !socket.current.connected) {
+      notify("Socket is not connected yet. Please wait a moment.", {
+        type: "error",
+      });
+      return;
+    }
+
     socket.current.emit(socketEvent, trimmedUrl);
     setUrl("");
   };

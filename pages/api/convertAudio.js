@@ -37,6 +37,16 @@ export default async function handler(req, res) {
           const tempFile = path.join(tempDir, `${outputName}_raw.m4a`);
           const finalFile = path.join(finalDir, `${outputName}.mp3`);
 
+          if (fs.existsSync(tempFile)) {
+            fs.unlinkSync(tempFile);
+            console.log("Deleted existing temp file:", tempFile);
+          }
+
+          if (fs.existsSync(finalFile)) {
+            fs.unlinkSync(finalFile);
+            console.log("Deleted existing final file:", finalFile);
+          }
+
           const ytdlPath = "C:\\ytdl\\yt-dlp.exe";
           const ffmpegPath = "C:\\ffmpeg\\bin\\ffmpeg.exe";
 
