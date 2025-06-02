@@ -4,7 +4,7 @@ const HomePage = () => {
   return (
     <div className="h-[100dvh] p-4">
       <div className="flex flex-row items-center justify-center mb-[20px]">
-        <h1 className="font-bold text-2xl p-4 text-greenLight">
+        <h1 className="font-bold text-2xl text-center p-4 text-greenLight">
           Audio and Video Downloader App
         </h1>
       </div>

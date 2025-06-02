@@ -1,18 +1,14 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import Logo from "@/components/Logo";
 import { useRouter } from "next/router";
 import BackHeader from "@/components/BackHeader";
 import DownloadedFiles from "@/components/DownloadedFiles";
 import DownloadForm from "@/components/DownloadForm";
+import NoMediaMessage from "./NoMediaMessage";
 import io from "socket.io-client";
 import notify from "helpers/notify";
 
-export default function Page({
-  mediaType,
-  convertApi,
-  socketEvent,
-  storedMedia,
-}) {
+export default function Page({ mediaType, socketEvent, storedMedia }) {
   const socket = useRef(null);
   const router = useRouter();
   const [url, setUrl] = useState("");
@@ -21,18 +17,20 @@ export default function Page({
 
   useEffect(() => {
     socketInitializer();
-    return () => {
+    const onUnload = () => {
       if (socket.current) {
         socket.current.disconnect();
-        socket.current = null;
-        console.log("Socket disconnected on cleanup.");
+        console.log("Socket disconnected on unload.");
       }
     };
+
+    window.addEventListener("beforeunload", onUnload);
+    return () => window.removeEventListener("beforeunload", onUnload);
   }, []);
 
   const socketInitializer = async () => {
     try {
-      await fetch(`/api/${convertApi}`);
+      await fetch("/api/socket");
     } catch (err) {
       console.error("Failed to initialize socket server:", err);
       notify("Failed to connect to server.", { type: "error" });
@@ -67,7 +65,7 @@ export default function Page({
     }
   };
 
-  const sendForConvertion = () => {
+  const sendForConvertion = useCallback(() => {
     const trimmedUrl = url.trim();
 
     if (!trimmedUrl) {
@@ -84,7 +82,7 @@ export default function Page({
 
     socket.current.emit(socketEvent, trimmedUrl);
     setUrl("");
-  };
+  }, [url, socketEvent]);
 
   const refreshData = () => {
     router.replace(router.asPath);
@@ -100,6 +98,19 @@ export default function Page({
     setProgress(null);
     notify(response.msg, { type: "success" });
   };
+  console.log({ storedMedia });
+
+  const withMedia = (storedMedia) => {
+    if (storedMedia.length === 0) {
+      return false;
+    }
+    if (storedMedia.length === 1 && storedMedia.includes("temp")) {
+      return false;
+    }
+    if (storedMedia.length > 0) {
+      return true;
+    }
+  };
 
   return (
     <div>
@@ -114,8 +125,10 @@ export default function Page({
           stage={stage}
           onSubmit={sendForConvertion}
         />
-        {storedMedia.length > 0 && (
+        {withMedia(storedMedia) ? (
           <DownloadedFiles storedItems={storedMedia} />
+        ) : (
+          <NoMediaMessage />
         )}
       </div>
     </div>
