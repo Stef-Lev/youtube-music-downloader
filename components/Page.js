@@ -98,18 +98,9 @@ export default function Page({ mediaType, socketEvent, storedMedia }) {
     setProgress(null);
     notify(response.msg, { type: "success" });
   };
-  console.log({ storedMedia });
 
   const withMedia = (storedMedia) => {
-    if (storedMedia.length === 0) {
-      return false;
-    }
-    if (storedMedia.length === 1 && storedMedia.includes("temp")) {
-      return false;
-    }
-    if (storedMedia.length > 0) {
-      return true;
-    }
+    return storedMedia.length > 0;
   };
 
   return (

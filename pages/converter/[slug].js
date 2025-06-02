@@ -28,6 +28,8 @@ export async function getServerSideProps(ctx) {
     };
   }
 
-  const storedMedia = getStoredMedia(pageData[slug].directory);
+  const storedMedia = getStoredMedia(pageData[slug].directory).filter(
+    (item) => item !== "temp"
+  );
   return { props: { storedMedia, slug } };
 }
