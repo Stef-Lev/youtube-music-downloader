@@ -15,7 +15,53 @@ export default function Page({ mediaType, socketEvent, storedMedia }) {
   const [progress, setProgress] = useState(null);
   const [stage, setStage] = useState("");
 
+  const handleComplete = useCallback(
+    (response) => {
+      router.replace(router.asPath);
+      console.log("Conversion complete:", response);
+      setProgress(null);
+      notify(response.msg, { type: "success" });
+    },
+    [router]
+  );
+
   useEffect(() => {
+    const socketInitializer = async () => {
+      try {
+        await fetch("/api/socket");
+      } catch (err) {
+        console.error("Failed to initialize socket server:", err);
+        notify("Failed to connect to server.", { type: "error" });
+        return;
+      }
+
+      if (!socket.current) {
+        socket.current = io();
+
+        socket.current.on("connect", () => {
+          console.log("Socket connected!");
+        });
+
+        socket.current.on("showError", (err) => {
+          console.error("Socket error:", err);
+          notify(err, { type: "error" });
+          setProgress(null);
+          setStage("");
+        });
+
+        socket.current.on("showProgress", (data) => {
+          console.log("Progress:", data);
+          setProgress(data.percent);
+          setStage(data.stage);
+        });
+
+        socket.current.on("showComplete", (response) => {
+          handleComplete(response);
+          setProgress(null);
+          setStage("");
+        });
+      }
+    };
     socketInitializer();
     const onUnload = () => {
       if (socket.current) {
@@ -26,44 +72,7 @@ export default function Page({ mediaType, socketEvent, storedMedia }) {
 
     window.addEventListener("beforeunload", onUnload);
     return () => window.removeEventListener("beforeunload", onUnload);
-  }, []);
-
-  const socketInitializer = async () => {
-    try {
-      await fetch("/api/socket");
-    } catch (err) {
-      console.error("Failed to initialize socket server:", err);
-      notify("Failed to connect to server.", { type: "error" });
-      return;
-    }
-
-    if (!socket.current) {
-      socket.current = io();
-
-      socket.current.on("connect", () => {
-        console.log("Socket connected!");
-      });
-
-      socket.current.on("showError", (err) => {
-        console.error("Socket error:", err);
-        notify(err, { type: "error" });
-        setProgress(null);
-        setStage("");
-      });
-
-      socket.current.on("showProgress", (data) => {
-        console.log("Progress:", data);
-        setProgress(data.percent);
-        setStage(data.stage);
-      });
-
-      socket.current.on("showComplete", (response) => {
-        handleComplete(response);
-        setProgress(null);
-        setStage("");
-      });
-    }
-  };
+  }, [handleComplete]);
 
   const sendForConvertion = useCallback(() => {
     const trimmedUrl = url.trim();
@@ -84,19 +93,8 @@ export default function Page({ mediaType, socketEvent, storedMedia }) {
     setUrl("");
   }, [url, socketEvent]);
 
-  const refreshData = () => {
-    router.replace(router.asPath);
-  };
-
   const handleChange = (ev) => {
     setUrl(ev.target.value);
-  };
-
-  const handleComplete = (response) => {
-    refreshData();
-    console.log("Conversion complete:", response);
-    setProgress(null);
-    notify(response.msg, { type: "success" });
   };
 
   const withMedia = (storedMedia) => {
