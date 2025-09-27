@@ -1,36 +1,125 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# YouTube Music Downloader
 
-## Getting Started
+A local desktop app to download YouTube music, built with Next.js, yt-dlp, and ffmpeg.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
+## Prerequisites
+
+Before installing the app, make sure your system meets the following requirements:
+
+- **Node.js** (version 18 or higher)
+- **npm** (comes with Node.js)
+- **Git** (to clone the repository)
+- **Chrome** or another modern browser
+
+---
+
+## Installation
+
+### 1. Install Node.js and npm
+
+#### Windows / macOS / Linux:
+
+1. Go to the [Node.js official website](https://nodejs.org/)
+2. Download the **LTS** version
+3. Install Node.js (npm comes bundled)
+
+Verify installation:
+
+```sh
+node -v
+npm -v
+git --version
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
+### 2. Setup the App
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.js`.
+1. Open a terminal (Command Prompt / PowerShell on Windows, Terminal on macOS/Linux)
+2. Clone the repository and install dependencies:
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+```sh
+# Navigate to the folder where you want to install the app
+cd C:\Users\YourName\Downloads   # Windows example
+# OR
+cd ~/Downloads                   # macOS/Linux
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+# Clone the repository
+git clone https://github.com/Stef-Lev/youtube-music-downloader.git my-nextjs-app
 
-## Learn More
+# Go into the app folder
+cd my-nextjs-app
 
-To learn more about Next.js, take a look at the following resources:
+# Install dependencies
+npm install
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# Build the Next.js app
+npm run build
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+3. Download necessary binaries:
 
-## Deploy on Vercel
+- **yt-dlp** → https://github.com/yt-dlp/yt-dlp/releases/latest
+- **ffmpeg**:
+  - Windows → https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip
+  - macOS → `brew install ffmpeg` (requires Homebrew)
+  - Linux → `sudo apt-get install ffmpeg`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Or use the included **`install.js`** script to automate everything:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+```sh
+node install.js
+```
+
+This script will:
+
+- Clone or update the repository
+- Install dependencies
+- Build the app
+- Download yt-dlp and ffmpeg
+
+---
+
+## Running the App
+
+Use the included **`run.js`** script:
+
+```sh
+node run.js
+```
+
+This will:
+
+- Start the Next.js server locally (`localhost:3000`)
+- Open Chrome (or the default browser) to the app
+- Stop the server automatically when Chrome is closed
+
+---
+
+### Optional: npm scripts
+
+You can add these to your `package.json` for convenience:
+
+```json
+"scripts": {
+  "install-app": "node install.js",
+  "start-app": "node run.js"
+}
+```
+
+Then run:
+
+```sh
+npm run install-app
+npm run start-app
+```
+
+---
+
+## Notes
+
+- Ensure **Chrome** is installed for auto-launch; otherwise, the app may open in the default browser.
+- yt-dlp and ffmpeg must be installed correctly.
+- Node.js is required. If you want a fully standalone app (no Node.js), consider bundling with **Electron** or creating an executable with **pkg**.
