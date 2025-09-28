@@ -15,7 +15,31 @@ Before installing the app, make sure your system meets the following requirement
 
 ---
 
-## Installation
+## Quick Setup (Recommended)
+
+Download the setup script:
+
+➡️ [Download setup.js](https://raw.githubusercontent.com/Stef-Lev/youtube-music-downloader/main/mainScripts/setup.js)
+
+Run it with:
+
+```sh
+node setup.js
+```
+
+This script will:
+
+- Clone or update the repository
+- Install dependencies
+- Build the app
+- Download yt-dlp and ffmpeg
+- Start the app and open it in Chrome
+
+---
+
+## Manual Installation
+
+If you prefer to install manually:
 
 ### 1. Install Node.js and npm
 
@@ -75,7 +99,6 @@ node install.js
 
 This script will:
 
-- Clone or update the repository
 - Install dependencies
 - Build the app
 - Download yt-dlp and ffmpeg
@@ -105,15 +128,15 @@ You can add these to your `package.json` for convenience:
 ```json
 "scripts": {
   "install-app": "node install.js",
-  "start-app": "node run.js"
+  "start-app": "node run.js",
+  "setup": "node setup.js"
 }
 ```
 
 Then run:
 
 ```sh
-npm run install-app
-npm run start-app
+npm run setup
 ```
 
 ---
